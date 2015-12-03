@@ -22,9 +22,13 @@ import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler;
 @Slf4j
 public class Karma {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final Pattern MANIPULATE_PATTERN = Pattern.compile("~([\\w öäü]*)(\\+\\+|--)(:? .*)?",
-                                                                      Pattern.CASE_INSENSITIVE);
-    private static final Pattern VIEW_PATTERN = Pattern.compile("~([\\w öäü]*)(:? .*)?", Pattern.CASE_INSENSITIVE);
+
+    private static final String NAME_PATTERN = "([\\w\\-` öäü]*)";
+
+    private static final Pattern MANIPULATE_PATTERN =
+            Pattern.compile('~' + NAME_PATTERN + "(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern VIEW_PATTERN =
+            Pattern.compile('~' + NAME_PATTERN + "(:? .*)?", Pattern.CASE_INSENSITIVE);
 
     private final Path karmaFilePath = Paths.get("karma.json");
     private Holder holder;
