@@ -50,25 +50,29 @@ public class Karma {
         Matcher manipulateMatcher = MANIPULATE_PATTERN.matcher(event.getMessage());
         if (manipulateMatcher.matches()) {
             String subject = manipulateMatcher.group(1).trim();
-            int delta = manipulateMatcher.group(2).equals("++") ? 1 : -1;
-            int newValue = holder.getKarma()
-                    .compute(subject, (k, v) -> (v == null ? 0 : v) + delta);
-            log.info("{} has changed the karma level for {} by {} to {}",
-                     event.getActor().getNick(),
-                     subject,
-                     delta,
-                     newValue);
-            event.getChannel().sendMessage(
-                    subject + " has a karma level of " + newValue + ", " + event.getActor().getNick());
+            if (!subject.isEmpty()) {
+                int delta = manipulateMatcher.group(2).equals("++") ? 1 : -1;
+                int newValue = holder.getKarma()
+                        .compute(subject, (k, v) -> (v == null ? 0 : v) + delta);
+                log.info("{} has changed the karma level for {} by {} to {}",
+                         event.getActor().getNick(),
+                         subject,
+                         delta,
+                         newValue);
+                event.getChannel().sendMessage(
+                        subject + " has a karma level of " + newValue + ", " + event.getActor().getNick());
 
-            saveKarma();
+                saveKarma();
+            }
         } else {
             Matcher viewMatcher = VIEW_PATTERN.matcher(event.getMessage());
             if (viewMatcher.matches()) {
                 String subject = viewMatcher.group(1).trim();
-                int value = holder.getKarma().getOrDefault(subject, 0);
-                event.getChannel().sendMessage(
-                        subject + " has a karma level of " + value + ", " + event.getActor().getNick());
+                if (!subject.isEmpty()) {
+                    int value = holder.getKarma().getOrDefault(subject, 0);
+                    event.getChannel().sendMessage(
+                            subject + " has a karma level of " + value + ", " + event.getActor().getNick());
+                }
             }
         }
     }
