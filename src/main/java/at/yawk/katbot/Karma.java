@@ -65,7 +65,7 @@ public class Karma {
         } else {
             Matcher viewMatcher = VIEW_PATTERN.matcher(event.getMessage());
             if (viewMatcher.matches()) {
-                String subject = manipulateMatcher.group(1).trim();
+                String subject = viewMatcher.group(1).trim();
                 int value = holder.getKarma().getOrDefault(subject, 0);
                 event.getChannel().sendMessage(
                         subject + " has a karma level of " + value + ", " + event.getActor().getNick());
