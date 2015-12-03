@@ -24,6 +24,7 @@ public class Karma {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Pattern MANIPULATE_PATTERN = Pattern.compile("~([\\w öäü]*)(\\+\\+|--)(:? .*)?",
                                                                       Pattern.CASE_INSENSITIVE);
+    private static final Pattern VIEW_PATTERN = Pattern.compile("~([\\w öäü]*)(:? .*)?", Pattern.CASE_INSENSITIVE);
 
     private final Path karmaFilePath = Paths.get("karma.json");
     private Holder holder;
@@ -46,10 +47,10 @@ public class Karma {
 
     @Handler
     public void onPublicMessage(ChannelMessageEvent event) throws IOException {
-        Matcher matcher = MANIPULATE_PATTERN.matcher(event.getMessage());
-        if (matcher.matches()) {
-            String subject = matcher.group(1).trim();
-            int delta = matcher.group(2).equals("++") ? 1 : -1;
+        Matcher manipulateMatcher = MANIPULATE_PATTERN.matcher(event.getMessage());
+        if (manipulateMatcher.matches()) {
+            String subject = manipulateMatcher.group(1).trim();
+            int delta = manipulateMatcher.group(2).equals("++") ? 1 : -1;
             int newValue = holder.getKarma()
                     .compute(subject, (k, v) -> (v == null ? 0 : v) + delta);
             log.info("{} has changed the karma level for {} by {} to {}",
@@ -61,6 +62,14 @@ public class Karma {
                     subject + " has a karma level of " + newValue + ", " + event.getActor().getNick());
 
             saveKarma();
+        } else {
+            Matcher viewMatcher = VIEW_PATTERN.matcher(event.getMessage());
+            if (viewMatcher.matches()) {
+                String subject = manipulateMatcher.group(1).trim();
+                int value = holder.getKarma().getOrDefault(subject, 0);
+                event.getChannel().sendMessage(
+                        subject + " has a karma level of " + value + ", " + event.getActor().getNick());
+            }
         }
     }
 
