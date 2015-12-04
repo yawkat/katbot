@@ -44,6 +44,13 @@
             <version>1.16.6</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.9.8</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

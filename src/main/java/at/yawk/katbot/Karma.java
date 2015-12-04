@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Clock;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -30,8 +32,12 @@ public class Karma {
     private static final Pattern VIEW_PATTERN =
             Pattern.compile('~' + NAME_PATTERN + "(:? .*)?", Pattern.CASE_INSENSITIVE);
 
+    private static final Clock CLOCK = Clock.systemUTC();
+
     private final Path karmaFilePath = Paths.get("karma.json");
     private Holder holder;
+
+    private final Map<String, MessageThrottle> userThrottles = Collections.synchronizedMap(new HashMap<>());
 
     public void loadKarma() throws IOException {
         if (Files.exists(karmaFilePath)) {
@@ -55,6 +61,11 @@ public class Karma {
         if (manipulateMatcher.matches()) {
             String subject = manipulateMatcher.group(1).trim();
             if (!subject.isEmpty()) {
+                MessageThrottle throttle = userThrottles
+                        .computeIfAbsent(event.getActor().getNick(), s -> new MessageThrottle(CLOCK));
+
+                if (!throttle.trySend()) { return; }
+
                 int delta = manipulateMatcher.group(2).equals("++") ? 1 : -1;
                 int newValue = holder.getKarma()
                         .compute(subject, (k, v) -> (v == null ? 0 : v) + delta);
