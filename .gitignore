@@ -2,3 +2,5 @@
 *.iml
 target/
 katbot.log
+config.yml
+karma.json

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.inject.Singleton;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent;
@@ -22,6 +23,7 @@ import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler;
  * @author yawkat
  */
 @Slf4j
+@Singleton
 public class Karma {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
