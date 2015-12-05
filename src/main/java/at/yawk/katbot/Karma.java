@@ -13,9 +13,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent;
 import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler;
 
@@ -34,6 +36,8 @@ public class Karma {
     private static final Pattern VIEW_PATTERN =
             Pattern.compile('~' + NAME_PATTERN + "(:? .*)?", Pattern.CASE_INSENSITIVE);
 
+    @Inject Client client;
+
     private static final Clock CLOCK = Clock.systemUTC();
 
     private final Path karmaFilePath = Paths.get("karma.json");
@@ -41,7 +45,12 @@ public class Karma {
 
     private final Map<String, MessageThrottle> userThrottles = Collections.synchronizedMap(new HashMap<>());
 
-    public void loadKarma() throws IOException {
+    public void start() throws IOException {
+        loadKarma();
+        client.getEventManager().registerEventListener(this);
+    }
+
+    private void loadKarma() throws IOException {
         if (Files.exists(karmaFilePath)) {
             try (InputStream in = Files.newInputStream(karmaFilePath)) {
                 holder = OBJECT_MAPPER.readValue(in, Holder.class);
