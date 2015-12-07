@@ -27,8 +27,6 @@ import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler;
 @Slf4j
 @Singleton
 public class Karma {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private static final String NAME_PATTERN = "([\\w\\-` öäü]*)";
 
     private static final Pattern MANIPULATE_PATTERN =
@@ -37,6 +35,7 @@ public class Karma {
             Pattern.compile('~' + NAME_PATTERN + "(:? .*)?", Pattern.CASE_INSENSITIVE);
 
     @Inject Client client;
+    @Inject ObjectMapper objectMapper;
 
     private static final Clock CLOCK = Clock.systemUTC();
 
@@ -53,7 +52,7 @@ public class Karma {
     private void loadKarma() throws IOException {
         if (Files.exists(karmaFilePath)) {
             try (InputStream in = Files.newInputStream(karmaFilePath)) {
-                holder = OBJECT_MAPPER.readValue(in, Holder.class);
+                holder = objectMapper.readValue(in, Holder.class);
             }
         } else {
             holder = new Holder();
@@ -62,7 +61,7 @@ public class Karma {
 
     private void saveKarma() throws IOException {
         try (OutputStream out = Files.newOutputStream(karmaFilePath)) {
-            OBJECT_MAPPER.writeValue(out, holder);
+            objectMapper.writeValue(out, holder);
         }
     }
 
