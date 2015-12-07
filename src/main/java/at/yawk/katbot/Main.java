@@ -46,6 +46,7 @@ public class Main {
 
         injector.getInstance(Karma.class).start();
         injector.getInstance(RssFeedListener.class).start();
+        injector.getInstance(ForumListener.class).start();
     }
 
     private static Client connect(Config config) {

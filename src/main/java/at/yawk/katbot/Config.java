@@ -14,6 +14,7 @@ public class Config {
     private final String nick;
     private final Server server;
     private final Map<URI, RssFeedListener.FeedConfiguration> feeds;
+    private final Map<URI, ForumListener.ForumConfiguration> forums;
     private final at.yawk.paste.client.Config paste;
 
     @Value

@@ -11,10 +11,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
@@ -24,7 +22,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.kitteh.irc.client.library.Client;
-import org.kitteh.irc.client.library.element.Channel;
 import org.xml.sax.InputSource;
 
 /**
@@ -72,35 +69,21 @@ public class RssFeedListener {
     }
 
     private void fire(FeedConfiguration conf, SyndEntry feedEntry) {
-        Map<String, Supplier<String>> parameters = new HashMap<>();
-        parameters.put("title", feedEntry::getTitle);
-        parameters.put("uri", feedEntry::getUri);
-        parameters.put("uri.short", () -> {
-            try {
-                return urlShortener.get().shorten(URI.create(feedEntry.getUri())).toString();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        String message = conf.messagePattern;
-        for (Map.Entry<String, Supplier<String>> parameter : parameters.entrySet()) {
-            String substitution = "${" + parameter.getKey() + '}';
-            if (message.contains(substitution)) {
-                message = message.replace(substitution, parameter.getValue().get());
-            }
-        }
+        String message = Template.parse(conf.messagePattern)
+                .set("title", feedEntry.getTitle())
+                .set("uri", feedEntry.getUri())
+                .set("uri.short", () -> {
+                    try {
+                        return urlShortener.get().shorten(URI.create(feedEntry.getUri())).toString();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .finish();
 
         log.info("Sending feed update '{}' to {} channels", message, conf.channels.size());
 
-        for (String channelName : conf.channels) {
-            Optional<Channel> channelOptional = client.getChannel(channelName);
-            if (!channelOptional.isPresent()) {
-                log.warn("Could not find channel {} for feed", channelName);
-                continue;
-            }
-            channelOptional.get().sendMessage(message);
-        }
+        ForumListener.sendToChannels(client, conf.channels, message);
     }
 
     public void start() {
