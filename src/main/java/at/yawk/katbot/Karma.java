@@ -49,10 +49,22 @@ public class Karma {
         client.getEventManager().registerEventListener(this);
     }
 
+    private static String canonicalizeSubjectName(String subject) {
+        return subject.toLowerCase();
+    }
+
     private void loadKarma() throws IOException {
         if (Files.exists(karmaFilePath)) {
             try (InputStream in = Files.newInputStream(karmaFilePath)) {
                 holder = objectMapper.readValue(in, Holder.class);
+            }
+            // canonicalize keys
+            for (Map.Entry<String, Integer> entry : new HashMap<>(holder.karma).entrySet()) {
+                String canonicalized = canonicalizeSubjectName(entry.getKey());
+                if (!canonicalized.equals(entry.getKey())) {
+                    holder.karma.remove(entry.getKey());
+                    holder.karma.put(canonicalized, entry.getValue());
+                }
             }
         } else {
             holder = new Holder();
@@ -74,14 +86,15 @@ public class Karma {
                 MessageThrottle throttle = userThrottles
                         .computeIfAbsent(event.getActor().getNick(), s -> new MessageThrottle(CLOCK));
 
-                if (!throttle.trySend()) { return; }
+                String canonicalizedSubject = canonicalizeSubjectName(subject);
+                if (!throttle.trySend(canonicalizedSubject)) { return; }
 
                 int delta = manipulateMatcher.group(2).equals("++") ? 1 : -1;
                 int newValue = holder.getKarma()
-                        .compute(subject, (k, v) -> (v == null ? 0 : v) + delta);
+                        .compute(canonicalizedSubject, (k, v) -> (v == null ? 0 : v) + delta);
                 log.info("{} has changed the karma level for {} by {} to {}",
                          event.getActor().getNick(),
-                         subject,
+                         canonicalizedSubject,
                          delta,
                          newValue);
                 event.getChannel().sendMessage(
@@ -94,7 +107,7 @@ public class Karma {
             if (viewMatcher.matches()) {
                 String subject = viewMatcher.group(1).trim();
                 if (!subject.isEmpty()) {
-                    int value = holder.getKarma().getOrDefault(subject, 0);
+                    int value = holder.getKarma().getOrDefault(canonicalizeSubjectName(subject), 0);
                     event.getChannel().sendMessage(
                             subject + " has a karma level of " + value + ", " + event.getActor().getNick());
                 }
