@@ -10,7 +10,8 @@ data class Config(
         val server: Config.Server,
         val feeds: Map<URI, RssFeedListener.FeedConfiguration>,
         val forums: Map<URI, ForumListener.ForumConfiguration>,
-        val paste: at.yawk.paste.client.Config
+        val paste: at.yawk.paste.client.Config,
+        val factoids: Map<String, String>
 ) {
     data class Server(
             val host: String,

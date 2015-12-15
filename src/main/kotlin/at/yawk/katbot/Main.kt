@@ -46,6 +46,7 @@ fun main(args: Array<String>) {
     injector.getInstance<RssFeedListener>().start()
     injector.getInstance<ForumListener>().start()
     injector.getInstance<Uptime>().start()
+    injector.getInstance<Factoid>().start()
 }
 
 private fun connect(config: Config): Client {
