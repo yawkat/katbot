@@ -36,7 +36,7 @@ class Uptime @Inject constructor(val client: Client) {
             times["hours"] = start.until(now, ChronoUnit.HOURS)
             now = now.plusHours(times["hours"]!!)
             times["minutes"] = start.until(now, ChronoUnit.MINUTES)
-            now = now.plusYears(times["minutes"]!!)
+            now = now.plusMinutes(times["minutes"]!!)
             times["seconds"] = start.until(now, ChronoUnit.SECONDS)
 
             val timeString = times.entries
