@@ -12,6 +12,7 @@ import com.google.inject.binder.AnnotatedBindingBuilder
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.kitteh.irc.client.library.Client
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.Executors
@@ -19,6 +20,8 @@ import java.util.concurrent.ScheduledExecutorService
 
 internal inline fun <reified T : Any> Injector.getInstance(): T = getInstance(T::class.java)
 internal inline fun <reified T : Any> Binder.bind(): AnnotatedBindingBuilder<T> = bind(T::class.java)
+
+val log = LoggerFactory.getLogger("at.yawk.katbot.Main")
 
 /**
  * @author yawkat
@@ -52,6 +55,7 @@ fun main(args: Array<String>) {
 private fun connect(config: Config): Client {
     val server = config.server
     return Client.builder()
+            .listenException { log.error("Error in IRC handler", it) }
             .nick(config.nick)
             .serverHost(server.host)
             .serverPort(server.port)
