@@ -45,6 +45,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Karma>().start()
     injector.getInstance<RssFeedListener>().start()
     injector.getInstance<ForumListener>().start()
+    injector.getInstance<Uptime>().start()
 }
 
 private fun connect(config: Config): Client {

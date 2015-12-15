@@ -6,7 +6,6 @@ import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import org.slf4j.LoggerFactory
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Clock
@@ -23,7 +22,7 @@ class Karma @Inject constructor(val client: Client, val objectMapper: ObjectMapp
         private const val NAME_PATTERN = "([\\w\\-` öäü]*)"
 
         private val MANIPULATE_PATTERN = Pattern.compile("~$NAME_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
-        private val VIEW_PATTERN = Pattern.compile("~$NAME_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
+        private val VIEW_PATTERN = Pattern.compile("~karma $NAME_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
 
         private val CLOCK = Clock.systemUTC()
     }
@@ -44,7 +43,6 @@ class Karma @Inject constructor(val client: Client, val objectMapper: ObjectMapp
         client.eventManager.registerEventListener(this)
     }
 
-    @Throws(IOException::class)
     private fun loadKarma() {
         if (Files.exists(karmaFilePath)) {
             Files.newInputStream(karmaFilePath).use { holder = objectMapper.readValue<Holder>(it) }
@@ -60,7 +58,6 @@ class Karma @Inject constructor(val client: Client, val objectMapper: ObjectMapp
     }
 
     @Handler
-    @Throws(IOException::class)
     @Synchronized
     fun onPublicMessage(event: ChannelMessageEvent) {
         val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.message)
