@@ -37,7 +37,9 @@ class Uptime @Inject constructor(val client: Client) {
             units.forEach { k, unit ->
                 val value = start.until(time, unit)
                 time = time.minus(value, unit)
-                timeStrings += "$value $k${if (value == 1L) "" else "s"}"
+                if (value > 0) {
+                    timeStrings += "$value $k${if (value == 1L) "" else "s"}"
+                }
             }
 
             val timeString = if (timeStrings.size == 0) {
