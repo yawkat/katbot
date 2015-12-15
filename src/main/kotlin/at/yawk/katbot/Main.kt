@@ -40,9 +40,24 @@ fun main(args: Array<String>) {
     val injector = Guice.createInjector(Module {
         it.bind<ObjectMapper>().toInstance(jsonMapper)
         it.bind<Config>().toInstance(config)
-        it.bind<Client>().toInstance(client)
         it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
         it.bind<HttpClient>().toInstance(HttpClientBuilder.create().build())
+        it.bind<IrcProvider>().toInstance(object : IrcProvider {
+            override fun sendToChannels(channels: List<String>, message: String) {
+                for (channelName in channels) {
+                    val channelOptional = client.getChannel(channelName)
+                    if (!channelOptional.isPresent) {
+                        ForumListener.log.warn("Could not find channel {}", channelName)
+                        continue
+                    }
+                    channelOptional.get().sendMessage(message)
+                }
+            }
+
+            override fun registerEventListener(listener: Any) {
+                client.eventManager.registerEventListener(listener)
+            }
+        })
     })
 
     injector.getInstance<Karma>().start()

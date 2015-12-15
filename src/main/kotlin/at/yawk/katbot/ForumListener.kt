@@ -10,17 +10,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Provider
 
-fun sendToChannels(client: Client, channels: List<String>, message: String) {
-    for (channelName in channels) {
-        val channelOptional = client.getChannel(channelName)
-        if (!channelOptional.isPresent) {
-            ForumListener.log.warn("Could not find channel {}", channelName)
-            continue
-        }
-        channelOptional.get().sendMessage(message)
-    }
-}
-
 /**
  * @author yawkat
  */
@@ -29,7 +18,7 @@ class ForumListener @Inject constructor(
         val config: Config,
         // lazy init
         val urlShortener: Provider<UrlShortener>,
-        val client: Client
+        val ircProvider: IrcProvider
 ) {
 
     companion object {
@@ -80,7 +69,7 @@ class ForumListener @Inject constructor(
 
                     log.info("Sending forum update '{}' to {} channels", message, configuration.channels.size)
 
-                    sendToChannels(client, configuration.channels, message)
+                    ircProvider.sendToChannels(configuration.channels, message)
                 }
             }
             firstPass = false

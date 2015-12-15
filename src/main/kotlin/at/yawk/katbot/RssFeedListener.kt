@@ -19,7 +19,7 @@ import javax.inject.Provider
  * @author yawkat
  */
 class RssFeedListener @Inject constructor(
-        val client: Client,
+        val ircProvider: IrcProvider,
         val executor: ScheduledExecutorService,
         val config: Config,
         val httpClient: HttpClient,
@@ -70,7 +70,7 @@ class RssFeedListener @Inject constructor(
 
         log.info("Sending feed update '{}' to {} channels", message, conf.channels.size)
 
-        sendToChannels(client, conf.channels, message)
+        ircProvider.sendToChannels(conf.channels, message)
     }
 
     fun start() {

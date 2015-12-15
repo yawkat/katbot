@@ -10,12 +10,12 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class Uptime @Inject constructor(val client: Client) {
+class Uptime @Inject constructor(val ircProvider: IrcProvider) {
     var startTime: LocalDateTime? = null
 
     fun start() {
         startTime = LocalDateTime.now()
-        client.eventManager.registerEventListener(this)
+        ircProvider.registerEventListener(this)
     }
 
     @Handler

@@ -15,7 +15,7 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class Karma @Inject constructor(val client: Client, val objectMapper: ObjectMapper) {
+class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: ObjectMapper) {
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
@@ -40,7 +40,7 @@ class Karma @Inject constructor(val client: Client, val objectMapper: ObjectMapp
 
     fun start() {
         loadKarma()
-        client.eventManager.registerEventListener(this)
+        ircProvider.registerEventListener(this)
     }
 
     private fun loadKarma() {

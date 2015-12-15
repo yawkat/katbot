@@ -1,6 +1,7 @@
 package at.yawk.katbot
 
 import org.kitteh.irc.client.library.Client
+import org.kitteh.irc.client.library.EventManager
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import javax.inject.Inject
@@ -8,9 +9,9 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class Factoid @Inject constructor(val client: Client, val config: Config) {
+class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Config) {
     fun start() {
-        client.eventManager.registerEventListener(this)
+        ircProvider.registerEventListener(this)
     }
 
     @Handler
