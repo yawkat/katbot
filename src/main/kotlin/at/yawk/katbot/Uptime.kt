@@ -24,24 +24,29 @@ class Uptime @Inject constructor(val client: Client) {
 
         val start = startTime
         if (start != null) {
-            val times = hashMapOf<String, Long>()
+            val units = linkedMapOf(
+                    Pair("year", ChronoUnit.YEARS),
+                    Pair("month", ChronoUnit.MONTHS),
+                    Pair("day", ChronoUnit.DAYS),
+                    Pair("hour", ChronoUnit.HOURS),
+                    Pair("minute", ChronoUnit.MINUTES),
+                    Pair("second", ChronoUnit.SECONDS)
+            )
+            val timeStrings = arrayListOf<String>()
+            var time = LocalDateTime.now()
+            units.forEach { k, unit ->
+                val value = start.until(time, unit)
+                time = time.minus(value, unit)
+                timeStrings += "$value $k${if (value == 1L) "" else "s"}"
+            }
 
-            var now = LocalDateTime.now()
-            times["year"] = start.until(now, ChronoUnit.YEARS)
-            now = now.minusYears(times["year"]!!)
-            times["month"] = start.until(now, ChronoUnit.MONTHS)
-            now = now.minusMonths(times["month"]!!)
-            times["day"] = start.until(now, ChronoUnit.DAYS)
-            now = now.minusDays(times["days"]!!)
-            times["hour"] = start.until(now, ChronoUnit.HOURS)
-            now = now.minusHours(times["hour"]!!)
-            times["minute"] = start.until(now, ChronoUnit.MINUTES)
-            now = now.minusMinutes(times["minute"]!!)
-            times["second"] = start.until(now, ChronoUnit.SECONDS)
-
-            val timeString = times.entries
-                    .filter { it.value > 0 }
-                    .joinToString (separator = ", ", transform = { "${it.value} ${it.key}${if (it.value == 1L) "" else "s"}" })
+            val timeString = if (timeStrings.size == 0) {
+                "0 seconds"
+            } else if (timeStrings.size == 1) {
+                timeStrings[0]
+            } else {
+                timeStrings.subList(0, timeStrings.size - 1).joinToString(separator = ", ") + " and " + timeStrings.last()
+            }
 
             event.channel.sendMessage("${event.actor.nick}, I've been up for $timeString")
         }
