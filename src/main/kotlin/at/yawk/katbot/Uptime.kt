@@ -27,21 +27,21 @@ class Uptime @Inject constructor(val client: Client) {
             val times = hashMapOf<String, Long>()
 
             var now = LocalDateTime.now()
-            times["years"] = start.until(now, ChronoUnit.YEARS)
-            now = now.plusYears(times["years"]!!)
-            times["months"] = start.until(now, ChronoUnit.MONTHS)
-            now = now.plusMonths(times["months"]!!)
-            times["days"] = start.until(now, ChronoUnit.DAYS)
-            now = now.plusDays(times["days"]!!)
-            times["hours"] = start.until(now, ChronoUnit.HOURS)
-            now = now.plusHours(times["hours"]!!)
-            times["minutes"] = start.until(now, ChronoUnit.MINUTES)
-            now = now.plusMinutes(times["minutes"]!!)
-            times["seconds"] = start.until(now, ChronoUnit.SECONDS)
+            times["year"] = start.until(now, ChronoUnit.YEARS)
+            now = now.minusYears(times["year"]!!)
+            times["month"] = start.until(now, ChronoUnit.MONTHS)
+            now = now.minusMonths(times["month"]!!)
+            times["day"] = start.until(now, ChronoUnit.DAYS)
+            now = now.minusDays(times["days"]!!)
+            times["hour"] = start.until(now, ChronoUnit.HOURS)
+            now = now.minusHours(times["hour"]!!)
+            times["minute"] = start.until(now, ChronoUnit.MINUTES)
+            now = now.minusMinutes(times["minute"]!!)
+            times["second"] = start.until(now, ChronoUnit.SECONDS)
 
             val timeString = times.entries
                     .filter { it.value > 0 }
-                    .joinToString (separator = ", ", transform = { "${it.value} ${it.key}" })
+                    .joinToString (separator = ", ", transform = { "${it.value} ${it.key}${if (it.value == 1L) "" else "s"}" })
 
             event.channel.sendMessage("${event.actor.nick}, I've been up for $timeString")
         }
