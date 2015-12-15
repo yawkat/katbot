@@ -65,6 +65,7 @@ fun main(args: Array<String>) {
     injector.getInstance<ForumListener>().start()
     injector.getInstance<Uptime>().start()
     injector.getInstance<Factoid>().start()
+    injector.getInstance<Decide>().start()
 }
 
 private fun connect(config: Config): Client {

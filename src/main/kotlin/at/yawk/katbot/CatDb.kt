@@ -9,15 +9,16 @@ import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
 import javax.inject.Singleton
 
+fun <E> randomChoice(list: List<E>): E {
+    return list[ThreadLocalRandom.current().nextInt(list.size)]
+}
+
 /**
  * @author yawkat
  */
 @Singleton
 class CatDb @Inject constructor(val httpClient: HttpClient, val objectMapper: ObjectMapper) {
-    fun getImage(vararg tags: String): Image {
-        val candidates = getImages(*tags)
-        return candidates[ThreadLocalRandom.current().nextInt(candidates.size)]
-    }
+    fun getImage(vararg tags: String): Image = randomChoice(getImages(*tags))
 
     fun getImages(vararg tags: String): List<Image> {
         var uri = "https://catdb.yawk.at/images?"
