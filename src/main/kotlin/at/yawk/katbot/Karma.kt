@@ -19,7 +19,7 @@ class Karma @Inject constructor(val client: Client, val objectMapper: ObjectMapp
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
-        private const val NAME_PATTERN = "([\\w\\-` öäü]*)"
+        private const val NAME_PATTERN = "([\\w\\-` öäü\\[\\]]*)"
 
         private val MANIPULATE_PATTERN = Pattern.compile("~$NAME_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
         private val VIEW_PATTERN = Pattern.compile("~karma $NAME_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
