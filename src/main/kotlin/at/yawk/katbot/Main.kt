@@ -66,6 +66,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Uptime>().start()
     injector.getInstance<Factoid>().start()
     injector.getInstance<Decide>().start()
+    injector.getInstance<Interact>().start()
 }
 
 private fun connect(config: Config): Client {

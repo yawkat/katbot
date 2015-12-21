@@ -12,14 +12,14 @@ import java.time.Clock
 import java.util.regex.Pattern
 import javax.inject.Inject
 
+internal const val NAME_PATTERN = "([\\w\\-` öäü\\[\\]]*)"
+
 /**
  * @author yawkat
  */
 class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: ObjectMapper) {
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
-
-        private const val NAME_PATTERN = "([\\w\\-` öäü\\[\\]]*)"
 
         private val MANIPULATE_PATTERN = Pattern.compile("~$NAME_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
         private val VIEW_PATTERN = Pattern.compile("~karma $NAME_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
