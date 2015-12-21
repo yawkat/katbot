@@ -2,6 +2,7 @@ package at.yawk.katbot
 
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
+import java.time.LocalTime
 import javax.inject.Inject
 
 /**
@@ -15,7 +16,12 @@ class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Conf
     private fun getFactoids(): Map<String, () -> String> {
         // wrap in function
         return config.factoids.mapValues { { it.value } } + mapOf(
-                Pair("morning", { catDb.getImage("yawn").url })
+                Pair("morning", {
+                    if (LocalTime.now().isBefore(LocalTime.of(3, 0)) ||
+                            LocalTime.now().isAfter(LocalTime.of(13, 0))) {
+                        "Sorry but it really isn't morning"
+                    } else catDb.getImage("yawn").url
+                })
         )
     }
 
