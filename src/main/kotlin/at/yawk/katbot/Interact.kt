@@ -26,6 +26,7 @@ class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Con
             if (interactions != null) {
                 event.channel.sendMessage(
                         Template(randomChoice(interactions))
+                                .set("bot", event.client.nick)
                                 .set("target", matcher.group(2))
                                 .finish()
                 )
