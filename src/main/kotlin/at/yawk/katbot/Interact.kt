@@ -23,10 +23,11 @@ class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Con
         if (matcher.matches()) {
             val command = matcher.group(1)
             val interactions = config.interactions[command.toLowerCase()]
-            if (interactions != null) {
+            val target = matcher.group(2)
+            if (interactions != null && target.isNotEmpty()) {
                 val message = Template(randomChoice(interactions))
                         .set("bot", event.client.nick)
-                        .set("target", matcher.group(2))
+                        .set("target", target)
                         .finish()
                 if (message.startsWith("ACTION:")) {
                     event.channel.sendCTCPMessage("ACTION " + message.substring("ACTION:".length))
