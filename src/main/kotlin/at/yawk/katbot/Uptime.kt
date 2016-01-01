@@ -1,8 +1,6 @@
 package at.yawk.katbot
 
-import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -18,7 +16,7 @@ class Uptime @Inject constructor(val ircProvider: IrcProvider) {
         ircProvider.registerEventListener(this)
     }
 
-    @Handler
+    @Subscribe
     fun onPublicMessage(event: ChannelMessageEvent) {
         if (event.message.trimEnd() != "~uptime") return
 
@@ -51,6 +49,7 @@ class Uptime @Inject constructor(val ircProvider: IrcProvider) {
             }
 
             event.channel.sendMessage("${event.actor.nick}, I've been up for $timeString")
+            throw CancelEvent
         }
     }
 }

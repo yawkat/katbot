@@ -2,9 +2,7 @@ package at.yawk.katbot
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -57,7 +55,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
         Files.newOutputStream(karmaFilePath).use { out -> objectMapper.writeValue(out, holder) }
     }
 
-    @Handler
+    @Subscribe
     @Synchronized
     fun onPublicMessage(event: ChannelMessageEvent) {
         val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.message)
@@ -68,7 +66,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
 
                 val canonicalizedSubject = canonicalizeSubjectName(subject)
                 if (!throttle.trySend(canonicalizedSubject)) {
-                    return
+                    throw CancelEvent
                 }
 
                 val oldValue = holder.karma[canonicalizedSubject] ?: 0
@@ -84,6 +82,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
                         subject + " has a karma level of " + newValue + ", " + event.actor.nick)
 
                 saveKarma()
+                throw CancelEvent
             }
         } else {
             val viewMatcher = VIEW_PATTERN.matcher(event.message)
@@ -93,6 +92,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
                     val value = holder.karma[canonicalizeSubjectName(subject)] ?: 0
                     event.channel.sendMessage(
                             subject + " has a karma level of " + value + ", " + event.actor.nick)
+                    throw CancelEvent
                 }
             }
         }

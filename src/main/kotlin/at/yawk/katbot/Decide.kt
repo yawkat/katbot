@@ -13,7 +13,7 @@ class Decide @Inject constructor(val ircProvider: IrcProvider) {
         ircProvider.registerEventListener(this)
     }
 
-    @Handler
+    @Subscribe
     fun onPublicMessage(event: ChannelMessageEvent) {
         if (!event.message.startsWith("~decide")) return
         val possibilities = arrayListOf<String>()
@@ -40,5 +40,6 @@ class Decide @Inject constructor(val ircProvider: IrcProvider) {
         }
 
         event.channel.sendMessage("${event.actor.nick}, $answer")
+        throw CancelEvent
     }
 }

@@ -12,6 +12,7 @@ import com.google.inject.binder.AnnotatedBindingBuilder
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.kitteh.irc.client.library.Client
+import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -37,6 +38,12 @@ fun main(args: Array<String>) {
 
     val client = connect(config)
 
+    val eventBus = EventBus()
+    client.eventManager.registerEventListener(object {
+        @Handler
+        fun handle(o: Any) = eventBus.post(o)
+    })
+
     val injector = Guice.createInjector(Module {
         it.bind<ObjectMapper>().toInstance(jsonMapper)
         it.bind<Config>().toInstance(config)
@@ -55,7 +62,7 @@ fun main(args: Array<String>) {
             }
 
             override fun registerEventListener(listener: Any) {
-                client.eventManager.registerEventListener(listener)
+                eventBus.subscribe(listener)
             }
         })
     })
@@ -67,6 +74,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Factoid>().start()
     injector.getInstance<Decide>().start()
     injector.getInstance<Interact>().start()
+    injector.getInstance<Ignore>().start()
 }
 
 private fun connect(config: Config): Client {

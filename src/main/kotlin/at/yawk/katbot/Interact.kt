@@ -17,7 +17,7 @@ class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Con
         ircProvider.registerEventListener(this)
     }
 
-    @Handler
+    @Subscribe
     fun onPublicMessage(event: ChannelMessageEvent) {
         val matcher = COMMAND_PATTERN.matcher(event.message)
         if (matcher.matches()) {
@@ -33,6 +33,7 @@ class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Con
                 } else {
                     event.channel.sendMessage(message)
                 }
+                throw CancelEvent
             }
         }
     }

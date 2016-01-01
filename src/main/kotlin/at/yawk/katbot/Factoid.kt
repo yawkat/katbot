@@ -25,7 +25,7 @@ class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Conf
         )
     }
 
-    @Handler
+    @Subscribe
     fun onPublicMessage(event: ChannelMessageEvent) {
         for (factoid in getFactoids()) {
             if (event.message.trimEnd().toLowerCase() == "~${factoid.key}") {
@@ -34,7 +34,7 @@ class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Conf
                                 .set("sender", event.actor.nick)
                                 .finish()
                 )
-                break
+                throw CancelEvent
             }
         }
     }

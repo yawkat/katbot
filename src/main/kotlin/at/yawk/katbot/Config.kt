@@ -12,7 +12,8 @@ data class Config(
         val forums: Map<URI, ForumListener.ForumConfiguration>,
         val paste: at.yawk.paste.client.Config,
         val factoids: Map<String, String>,
-        val interactions: Map<String, List<String>>
+        val interactions: Map<String, List<String>>,
+        val ignore: Set<String>
 ) {
     data class Server(
             val host: String,
