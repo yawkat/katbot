@@ -11,7 +11,7 @@ class Ignore @Inject constructor(val config: Config, val ircProvider: IrcProvide
         ircProvider.registerEventListener(this)
     }
 
-    @Subscribe
+    @Subscribe(priority = -1000)
     fun onPublicMessage(event: ChannelMessageEvent) {
         if (config.ignore.contains(event.actor.nick)) throw CancelEvent
     }
