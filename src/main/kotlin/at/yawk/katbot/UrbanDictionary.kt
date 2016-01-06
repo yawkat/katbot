@@ -14,7 +14,7 @@ import javax.inject.Inject
 class UrbanDictionary @Inject constructor(val ircProvider: IrcProvider, val urlShortener: UrlShortener) {
     companion object {
         private val PATTERN = "~(?:ud|urban|ub|urbandictionary) (.+)".toPattern(Pattern.CASE_INSENSITIVE)
-        private const val MESSAGE_LENGTH_LIMIT = 100
+        private const val MESSAGE_LENGTH_LIMIT = 350
     }
 
     fun start() {
