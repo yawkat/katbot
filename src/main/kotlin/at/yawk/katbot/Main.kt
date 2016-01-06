@@ -75,6 +75,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Decide>().start()
     injector.getInstance<Interact>().start()
     injector.getInstance<Ignore>().start()
+    injector.getInstance<UrbanDictionary>().start()
 }
 
 private fun connect(config: Config): Client {
