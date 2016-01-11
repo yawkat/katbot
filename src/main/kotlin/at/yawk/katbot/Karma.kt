@@ -3,7 +3,6 @@ package at.yawk.katbot
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -54,7 +53,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
         ircProvider.registerEventListener(this)
     }
 
-    @Handler
+    @Subscribe
     fun onPublicMessage(event: ChannelMessageEvent) {
         val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.message)
         if (manipulateMatcher.matches()) {
@@ -99,7 +98,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
         val select = connection.prepareStatement("select karma from karma where canonicalName = ?")
         select.setString(1, canonicalizedSubject)
         val result = select.executeQuery()
-        result.next()
+        if (!result.next()) return 0 // no entry
         return result.getLong("karma")
     }
 }
