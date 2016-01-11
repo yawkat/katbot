@@ -3,4 +3,5 @@
 target/
 katbot.log
 config.yml
-karma.json
+karma.old.json
+db/
