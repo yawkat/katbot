@@ -52,6 +52,7 @@ class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Conf
                     event.channel.sendMessage(
                             Template(value)
                                     .set("sender", event.actor.nick)
+                                    .set("cat", { catDb.getImage().url })
                                     .setWithParameter("cat", { tags ->
                                         catDb.getImage(*tags.split("|").toTypedArray()).url
                                     })
