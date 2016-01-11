@@ -1,40 +1,64 @@
 package at.yawk.katbot
 
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
-import java.time.LocalTime
 import javax.inject.Inject
+import javax.sql.DataSource
 
 /**
  * @author yawkat
  */
-class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Config, val catDb: CatDb) {
+class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Config, val catDb: CatDb, val dataSource: DataSource) {
     fun start() {
         ircProvider.registerEventListener(this)
     }
 
-    private fun getFactoids(): Map<String, () -> String> {
-        // wrap in function
-        return config.factoids.mapValues { { it.value } } + mapOf(
-                Pair("morning", {
-                    if (LocalTime.now().isBefore(LocalTime.of(3, 0)) ||
-                            LocalTime.now().isAfter(LocalTime.of(13, 0))) {
-                        "Sorry but it really isn't morning"
-                    } else catDb.getImage("yawn").url
-                })
-        )
+    private fun canonicalizeFactoidName(name: String): String {
+        // only keep word characters
+        return name.replace("[^\\w]".toRegex(), "")
     }
 
-    @Subscribe
+    @Subscribe(priority = 100) // low priority
     fun onPublicMessage(event: ChannelMessageEvent) {
-        for (factoid in getFactoids()) {
-            if (event.message.trimEnd().toLowerCase() == "~${factoid.key}") {
-                event.channel.sendMessage(
-                        Template(factoid.value.invoke())
-                                .set("sender", event.actor.nick)
-                                .finish()
-                )
+        if (event.message.startsWith("~")) {
+            if (event.message.contains(" is ")) {
+                if (event.actor.nick != "yawkat") {
+                    // todo
+                    event.channel.sendMessage("${event.actor.nick}, you are not allowed to do that.")
+                    throw CancelEvent
+                }
+
+                val splitIndex = event.message.indexOf(" is ")
+                val canonical = canonicalizeFactoidName(event.message.substring(1, splitIndex))
+                val value = event.message.substring(splitIndex + 4).trimEnd()
+                dataSource.connection.closed {
+                    val statement = it.prepareStatement("merge into factoids (canonicalName, value) values (?, ?)")
+                    statement.setString(1, canonical)
+                    statement.setString(2, value)
+                    statement.execute()
+                }
+                event.channel.sendMessage("Factoid added.")
                 throw CancelEvent
+            }
+
+            val canonical = canonicalizeFactoidName(event.message.substring(1))
+            if (canonical.isNotEmpty()) {
+                val value = dataSource.connection.closed {
+                    val statement = it.prepareStatement("select value from factoids where canonicalName = ?")
+                    statement.setString(1, canonical)
+                    val result = statement.executeQuery()
+                    if (result.next()) result.getString("value") else null
+                }
+                if (value != null) {
+                    event.channel.sendMessage(
+                            Template(value)
+                                    .set("sender", event.actor.nick)
+                                    .setWithParameter("cat", { tags ->
+                                        catDb.getImage(*tags.split("|").toTypedArray()).url
+                                    })
+                                    .finish()
+                    )
+                    throw CancelEvent
+                }
             }
         }
     }
