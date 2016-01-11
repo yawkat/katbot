@@ -70,7 +70,12 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
                     val update = it.prepareStatement("update karma set karma = karma + ? where canonicalName = ?")
                     update.setInt(1, if (manipulateMatcher.group(2) == "++") 1 else -1)
                     update.setString(2, canonicalizedSubject)
-                    update.execute()
+                    if (update.executeUpdate() == 0) {
+                        val insert = it.prepareStatement("insert into karma (canonicalName, karma) values (?, ?)")
+                        insert.setString(1, canonicalizedSubject)
+                        insert.setInt(2, if (manipulateMatcher.group(2) == "++") 1 else -1)
+                        insert.execute()
+                    }
 
                     getKarma(it, canonicalizedSubject)
                 }
