@@ -1,21 +1,24 @@
 package at.yawk.katbot
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.databind.node.ObjectNode
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
+import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.sql.Connection
 import java.time.Clock
 import java.util.regex.Pattern
 import javax.inject.Inject
+import javax.sql.DataSource
 
 internal const val NAME_PATTERN = "([\\w\\-` öäü\\[\\]]*)"
 
 /**
  * @author yawkat
  */
-class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: ObjectMapper) {
+class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: ObjectMapper, val dataSource: DataSource) {
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
@@ -25,38 +28,33 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
         private val CLOCK = Clock.systemUTC()
     }
 
-    private val karmaFilePath = Paths.get("karma.json")
-    private var holder = emptyHolder()
-
     private val userThrottles: MutableMap<String, MessageThrottle> = hashMapOf()
-
-    private fun emptyHolder() = Holder(hashMapOf())
 
     private fun canonicalizeSubjectName(subject: String): String {
         return subject.toLowerCase()
     }
 
     fun start() {
-        loadKarma()
+        // karma.json migration
+        val karmaFilePath = Paths.get("karma.json")
+        if (Files.exists(karmaFilePath)) {
+            val node = Files.newInputStream(karmaFilePath).use { objectMapper.readTree(it) }
+            dataSource.connection.closed {
+                val karma = node.get("karma") as ObjectNode
+                karma.fields().forEach { entry ->
+                    val statement = it.prepareStatement("insert into karma (canonicalName, karma) values (?, ?)")
+                    statement.setString(1, canonicalizeSubjectName(entry.key))
+                    statement.setLong(2, entry.value.longValue())
+                    statement.execute()
+                }
+            }
+            Files.move(karmaFilePath, Paths.get("karma.old.json"))
+        }
+
         ircProvider.registerEventListener(this)
     }
 
-    private fun loadKarma() {
-        if (Files.exists(karmaFilePath)) {
-            Files.newInputStream(karmaFilePath).use { holder = objectMapper.readValue<Holder>(it) }
-            // canonicalize keys
-            holder = Holder(holder.karma.mapKeys { canonicalizeSubjectName(it.key) })
-        } else {
-            holder = emptyHolder()
-        }
-    }
-
-    private fun saveKarma() {
-        Files.newOutputStream(karmaFilePath).use { out -> objectMapper.writeValue(out, holder) }
-    }
-
-    @Subscribe
-    @Synchronized
+    @Handler
     fun onPublicMessage(event: ChannelMessageEvent) {
         val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.message)
         if (manipulateMatcher.matches()) {
@@ -66,37 +64,50 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
 
                 val canonicalizedSubject = canonicalizeSubjectName(subject)
                 if (!throttle.trySend(canonicalizedSubject)) {
-                    throw CancelEvent
+                    return
                 }
 
-                val oldValue = holder.karma[canonicalizedSubject] ?: 0
-                val newValue = if (manipulateMatcher.group(2) == "++") oldValue + 1 else oldValue - 1
-                holder = Holder(holder.karma + Pair(canonicalizedSubject, newValue))
+                val newKarma = dataSource.connection.closed {
+                    val update = it.prepareStatement("update karma set karma = karma + ? where canonicalName = ?")
+                    update.setInt(1, if (manipulateMatcher.group(2) == "++") 1 else -1)
+                    update.setString(2, canonicalizedSubject)
+                    update.execute()
 
-                log.info("{} has changed the karma level for {} from {} to {}",
+                    getKarma(it, canonicalizedSubject)
+                }
+
+                log.info("{} has changed the karma level for {} to {}",
                         event.actor.nick,
                         canonicalizedSubject,
-                        oldValue,
-                        newValue)
-                event.channel.sendMessage(
-                        subject + " has a karma level of " + newValue + ", " + event.actor.nick)
-
-                saveKarma()
-                throw CancelEvent
+                        newKarma)
+                event.channel.sendMessage("$subject has a karma level of $newKarma, ${event.actor.nick}")
             }
         } else {
             val viewMatcher = VIEW_PATTERN.matcher(event.message)
             if (viewMatcher.matches()) {
                 val subject = viewMatcher.group(1).trim { it <= ' ' }
                 if (!subject.isEmpty()) {
-                    val value = holder.karma[canonicalizeSubjectName(subject)] ?: 0
+                    val value = dataSource.connection.closed { getKarma(it, canonicalizeSubjectName(subject)) }
                     event.channel.sendMessage(
                             subject + " has a karma level of " + value + ", " + event.actor.nick)
-                    throw CancelEvent
                 }
             }
         }
     }
+
+    private fun getKarma(connection: Connection, canonicalizedSubject: String): Long {
+        val select = connection.prepareStatement("select karma from karma where canonicalName = ?")
+        select.setString(1, canonicalizedSubject)
+        val result = select.executeQuery()
+        result.next()
+        return result.getLong("karma")
+    }
 }
 
-internal data class Holder(val karma: Map<String, Int>)
+inline fun <C : AutoCloseable, T> C.closed(arg: (C) -> T): T {
+    try {
+        return arg.invoke(this)
+    } finally {
+        this.close()
+    }
+}
