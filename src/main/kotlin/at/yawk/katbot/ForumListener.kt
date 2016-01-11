@@ -1,7 +1,6 @@
 package at.yawk.katbot
 
 import org.jsoup.Jsoup
-import org.kitteh.irc.client.library.Client
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.util.*
@@ -65,11 +64,8 @@ class ForumListener @Inject constructor(
                             .set("author", thread.author)
                             .set("uri", thread.uri.toString())
                             .set("uri.short", { urlShortener.get().shorten(thread.uri).toString() })
-                            .finish()
-
                     log.info("Sending forum update '{}' to {} channels", message, configuration.channels.size)
-
-                    ircProvider.sendToChannels(configuration.channels, message)
+                    message.sendTo(ircProvider.findChannels(configuration.channels))
                 }
             }
             firstPass = false

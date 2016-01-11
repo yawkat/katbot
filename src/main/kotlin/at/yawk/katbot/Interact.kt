@@ -1,7 +1,6 @@
 package at.yawk.katbot
 
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import java.util.regex.Pattern
 import javax.inject.Inject
 
@@ -25,15 +24,10 @@ class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Con
             val interactions = config.interactions[command.toLowerCase()]
             val target = matcher.group(2)
             if (interactions != null && target.isNotEmpty()) {
-                val message = Template(randomChoice(interactions))
+                Template(randomChoice(interactions))
                         .set("bot", event.client.nick)
                         .set("target", target)
-                        .finish()
-                if (message.startsWith("ACTION:")) {
-                    event.channel.sendCTCPMessage("ACTION " + message.substring("ACTION:".length))
-                } else {
-                    event.channel.sendMessage(message)
-                }
+                        .sendTo(event.channel)
                 throw CancelEvent
             }
         }

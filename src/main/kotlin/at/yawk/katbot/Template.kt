@@ -1,5 +1,6 @@
 package at.yawk.katbot
 
+import org.kitteh.irc.client.library.element.MessageReceiver
 import java.util.regex.Pattern
 
 /**
@@ -39,4 +40,20 @@ data class Template(private val data: String) {
     }
 
     fun finish(): String = data
+
+    fun sendTo(vararg messageReceiver: MessageReceiver) {
+        sendTo(messageReceiver.asList())
+    }
+
+    fun sendTo(messageReceivers: List<MessageReceiver>) {
+        val msg = finish()
+        if (msg.startsWith("/me ")) {
+            val ctcp = "ACTION ${msg.substring(4)}"
+            messageReceivers.forEach { it.sendCTCPMessage(ctcp) }
+        } else {
+            messageReceivers.forEach { it.sendMessage(msg) }
+        }
+    }
+
+    override fun toString(): String = data
 }

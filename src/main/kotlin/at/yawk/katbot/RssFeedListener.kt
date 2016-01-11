@@ -66,11 +66,10 @@ class RssFeedListener @Inject constructor(
                 .set("title", feedEntry.title)
                 .set("uri", feedEntry.uri)
                 .set("uri.short", urlShortener.get().shorten(URI.create(feedEntry.uri)).toString())
-                .finish()
 
         log.info("Sending feed update '{}' to {} channels", message, conf.channels.size)
 
-        ircProvider.sendToChannels(conf.channels, message)
+        message.sendTo(ircProvider.findChannels(conf.channels))
     }
 
     fun start() {

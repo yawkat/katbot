@@ -14,6 +14,7 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.flywaydb.core.Flyway
 import org.h2.jdbcx.JdbcDataSource
 import org.kitteh.irc.client.library.Client
+import org.kitteh.irc.client.library.element.MessageReceiver
 import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -61,15 +62,16 @@ fun main(args: Array<String>) {
         it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
         it.bind<HttpClient>().toInstance(HttpClientBuilder.create().build())
         it.bind<IrcProvider>().toInstance(object : IrcProvider {
-            override fun sendToChannels(channels: List<String>, message: String) {
-                for (channelName in channels) {
-                    val channelOptional = client.getChannel(channelName)
+            override fun findChannels(channelNames: List<String>): List<MessageReceiver> {
+                return channelNames.map {
+                    val channelOptional = client.getChannel(it)
                     if (!channelOptional.isPresent) {
-                        ForumListener.log.warn("Could not find channel {}", channelName)
-                        continue
+                        ForumListener.log.warn("Could not find channel {}", it)
+                        null
+                    } else {
+                        channelOptional.get()
                     }
-                    channelOptional.get().sendMessage(message)
-                }
+                }.filterNotNull()
             }
 
             override fun registerEventListener(listener: Any) {
