@@ -80,6 +80,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
                         canonicalizedSubject,
                         newKarma)
                 event.channel.sendMessage("$subject has a karma level of $newKarma, ${event.actor.nick}")
+                throw CancelEvent
             }
         } else {
             val viewMatcher = VIEW_PATTERN.matcher(event.message)
@@ -89,6 +90,7 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
                     val value = dataSource.connection.closed { getKarma(it, canonicalizeSubjectName(subject)) }
                     event.channel.sendMessage(
                             subject + " has a karma level of " + value + ", " + event.actor.nick)
+                    throw CancelEvent
                 }
             }
         }
