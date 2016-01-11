@@ -4,4 +4,4 @@ target/
 katbot.log
 config.yml
 karma.old.json
-db/
+/db/
