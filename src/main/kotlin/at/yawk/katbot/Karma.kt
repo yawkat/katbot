@@ -12,7 +12,8 @@ import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.sql.DataSource
 
-internal const val NAME_PATTERN = "([\\w\\-` öäü\\[\\]]*)"
+internal const val SUBJECT_PATTERN = "([\\w\\-` öäü\\[\\]]*)"
+internal const val NICK_PATTERN = "([\\w\\-`öäü\\[\\]]+)"
 
 /**
  * @author yawkat
@@ -21,8 +22,8 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
-        private val MANIPULATE_PATTERN = Pattern.compile("~$NAME_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
-        private val VIEW_PATTERN = Pattern.compile("~karma $NAME_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
+        private val MANIPULATE_PATTERN = Pattern.compile("~$SUBJECT_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
+        private val VIEW_PATTERN = Pattern.compile("~karma $SUBJECT_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
 
         private val CLOCK = Clock.systemUTC()
     }

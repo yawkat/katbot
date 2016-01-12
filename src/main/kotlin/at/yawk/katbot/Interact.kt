@@ -9,7 +9,7 @@ import javax.inject.Inject
  */
 class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Config) {
     companion object {
-        private val COMMAND_PATTERN = Pattern.compile("~\\s*(\\w+)\\s*($NAME_PATTERN)\\s*")
+        private val COMMAND_PATTERN = Pattern.compile("~\\s*(\\w+)\\s*($SUBJECT_PATTERN)\\s*")
     }
 
     fun start() {
