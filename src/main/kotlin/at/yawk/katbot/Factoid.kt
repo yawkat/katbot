@@ -7,7 +7,7 @@ import javax.sql.DataSource
 /**
  * @author yawkat
  */
-class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Config, val catDb: CatDb, val dataSource: DataSource) {
+class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Config, val catDb: CatDb, val dataSource: DataSource, val roleManager: RoleManager) {
     fun start() {
         ircProvider.registerEventListener(this)
     }
@@ -21,8 +21,7 @@ class Factoid @Inject constructor(val ircProvider: IrcProvider, val config: Conf
     fun onPublicMessage(event: ChannelMessageEvent) {
         if (event.message.startsWith("~")) {
             if (event.message.contains(" is ")) {
-                if (event.actor.nick != "yawkat") {
-                    // todo
+                if (!roleManager.hasRole(event.actor, Role.ADD_FACTOIDS)) {
                     event.channel.sendMessage("${event.actor.nick}, you are not allowed to do that.")
                     throw CancelEvent
                 }
