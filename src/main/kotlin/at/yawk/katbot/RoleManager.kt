@@ -11,14 +11,14 @@ import javax.sql.DataSource
 /**
  * @author yawkat
  */
-class RoleManager @Inject constructor(val ircProvider: IrcProvider, val dataSource: DataSource) {
+class RoleManager @Inject constructor(val eventBus: EventBus, val dataSource: DataSource) {
     companion object {
-        private val EDIT_ROLE_PATTERN = "~roles $NICK_PATTERN((?: +[+\\-]\\w+)+)".toPattern(Pattern.CASE_INSENSITIVE)
-        private val GET_ROLES_PATTERN = "~roles $NICK_PATTERN".toPattern(Pattern.CASE_INSENSITIVE)
+        private val EDIT_ROLE_PATTERN = "roles $NICK_PATTERN((?: +[+\\-]\\w+)+)".toPattern(Pattern.CASE_INSENSITIVE)
+        private val GET_ROLES_PATTERN = "roles $NICK_PATTERN".toPattern(Pattern.CASE_INSENSITIVE)
     }
 
     fun start() {
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     fun hasRole(user: User, role: Role): Boolean {
@@ -35,11 +35,11 @@ class RoleManager @Inject constructor(val ircProvider: IrcProvider, val dataSour
     }
 
     @Subscribe(priority = -1)
-    fun onPublicMessage(event: ChannelMessageEvent) {
+    fun command(event: Command) {
         val getMatcher = GET_ROLES_PATTERN.matcher(event.message)
         if (getMatcher.matches()) {
             val targetName = getMatcher.group(1)
-            val target = event.channel.getUser(targetName).orElse(null)
+            val target = event.userLocator.getUser(targetName)
             if (target == null) {
                 event.channel.sendMessage("Unknown user")
                 throw CancelEvent
@@ -72,7 +72,7 @@ class RoleManager @Inject constructor(val ircProvider: IrcProvider, val dataSour
             }
 
             val targetNick = editMatcher.group(1)
-            val target = event.channel.getUser(targetNick).orElse(null)
+            val target = event.userLocator.getUser(targetNick)
             if (target == null) {
                 event.channel.sendMessage("Unknown user")
                 throw CancelEvent

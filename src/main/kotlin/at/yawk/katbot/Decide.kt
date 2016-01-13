@@ -1,23 +1,22 @@
 package at.yawk.katbot
 
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
-import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
 import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
 
 /**
  * @author yawkat
  */
-class Decide @Inject constructor(val ircProvider: IrcProvider) {
+class Decide @Inject constructor(val eventBus: EventBus) {
     fun start() {
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     @Subscribe
-    fun onPublicMessage(event: ChannelMessageEvent) {
-        if (!event.message.startsWith("~decide")) return
+    fun command(event: Command) {
+        if (!event.message.startsWith("decide")) return
         val possibilities = arrayListOf<String>()
-        var start = "~decide ".length
+        var start = "decide ".length
         while (start < event.message.length) {
             var end = event.message.indexOf(' ', start)
             if (end == -1) end = event.message.length

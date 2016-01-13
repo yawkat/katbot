@@ -1,6 +1,5 @@
 package at.yawk.katbot
 
-import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -8,17 +7,17 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class Uptime @Inject constructor(val ircProvider: IrcProvider) {
+class Uptime @Inject constructor(val eventBus: EventBus) {
     var startTime: LocalDateTime? = null
 
     fun start() {
         startTime = LocalDateTime.now()
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     @Subscribe
-    fun onPublicMessage(event: ChannelMessageEvent) {
-        if (event.message.trimEnd() != "~uptime") return
+    fun command(event: Command) {
+        if (event.message.trimEnd() != "uptime") return
 
         val start = startTime
         if (start != null) {

@@ -27,10 +27,15 @@ class EventBus {
         }
     }
 
-    fun post(o: Any) {
+    /**
+     * @return `false` if the event was cancelled.
+     */
+    fun post(o: Any): Boolean {
         try {
             subscribers[o.javaClass]?.forEach { it.handler.invoke(o) }
+            return true
         } catch(cancel: CancelEvent) {
+            return false
         }
     }
 }

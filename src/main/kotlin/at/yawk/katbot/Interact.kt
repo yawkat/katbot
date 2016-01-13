@@ -7,17 +7,17 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Config) {
+class Interact @Inject constructor(val eventBus: EventBus, val config: Config) {
     companion object {
-        private val COMMAND_PATTERN = Pattern.compile("~\\s*(\\w+)\\s*($SUBJECT_PATTERN)\\s*")
+        private val COMMAND_PATTERN = Pattern.compile("(\\w+)\\s*($SUBJECT_PATTERN)\\s*")
     }
 
     fun start() {
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     @Subscribe
-    fun onPublicMessage(event: ChannelMessageEvent) {
+    fun command(event: Command) {
         val matcher = COMMAND_PATTERN.matcher(event.message)
         if (matcher.matches()) {
             val command = matcher.group(1)
@@ -25,9 +25,8 @@ class Interact @Inject constructor(val ircProvider: IrcProvider, val config: Con
             val target = matcher.group(2)
             if (interactions != null && target.isNotEmpty()) {
                 Template(randomChoice(interactions))
-                        .set("bot", event.client.nick)
                         .set("target", target)
-                        .sendTo(event.channel)
+                        .sendAsReply(event)
                 throw CancelEvent
             }
         }

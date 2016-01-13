@@ -57,6 +57,7 @@ fun main(args: Array<String>) {
 
     val injector = Guice.createInjector(Module {
         it.bind<ObjectMapper>().toInstance(jsonMapper)
+        it.bind<EventBus>().toInstance(eventBus)
         it.bind<Config>().toInstance(config)
         it.bind<DataSource>().toInstance(dataSource)
         it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
@@ -79,6 +80,8 @@ fun main(args: Array<String>) {
             }
         })
     })
+
+    injector.getInstance<CommandManager>().start()
 
     injector.getInstance<Karma>().start()
     injector.getInstance<RssFeedListener>().start()

@@ -1,7 +1,6 @@
 package at.yawk.katbot
 
 import org.jsoup.Jsoup
-import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import java.net.URI
 import java.net.URLEncoder
 import java.util.regex.Pattern
@@ -11,18 +10,18 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class UrbanDictionary @Inject constructor(val ircProvider: IrcProvider, val urlShortener: UrlShortener) {
+class UrbanDictionary @Inject constructor(val eventBus: EventBus, val urlShortener: UrlShortener) {
     companion object {
-        private val PATTERN = "~(?:ud|urban|ub|urbandictionary) (.+)".toPattern(Pattern.CASE_INSENSITIVE)
+        private val PATTERN = "(?:ud|urban|ub|urbandictionary) (.+)".toPattern(Pattern.CASE_INSENSITIVE)
         private const val MESSAGE_LENGTH_LIMIT = 350
     }
 
     fun start() {
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     @Subscribe
-    fun onPublicMessage(event: ChannelMessageEvent) {
+    fun command(event: Command) {
         val match = PATTERN.matcher(event.message)
         if (match.matches()) {
             val term = match.group(1)

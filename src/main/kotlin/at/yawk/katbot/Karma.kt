@@ -18,12 +18,12 @@ internal const val NICK_PATTERN = "([\\w\\-`öäü\\[\\]]+)"
 /**
  * @author yawkat
  */
-class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: ObjectMapper, val dataSource: DataSource) {
+class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: ObjectMapper, val dataSource: DataSource) {
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
-        private val MANIPULATE_PATTERN = Pattern.compile("~$SUBJECT_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
-        private val VIEW_PATTERN = Pattern.compile("~karma $SUBJECT_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
+        private val MANIPULATE_PATTERN = Pattern.compile("$SUBJECT_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
+        private val VIEW_PATTERN = Pattern.compile("karma $SUBJECT_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
 
         private val CLOCK = Clock.systemUTC()
     }
@@ -51,11 +51,11 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
             Files.move(karmaFilePath, Paths.get("karma.old.json"))
         }
 
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     @Subscribe
-    fun onPublicMessage(event: ChannelMessageEvent) {
+    fun command(event: Command) {
         val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.message)
         if (manipulateMatcher.matches()) {
             val subject = manipulateMatcher.group(1).trim { it <= ' ' }
@@ -64,6 +64,11 @@ class Karma @Inject constructor(val ircProvider: IrcProvider, val objectMapper: 
 
                 val canonicalizedSubject = canonicalizeSubjectName(subject)
                 if (!throttle.trySend(canonicalizedSubject)) {
+                    return
+                }
+
+                if (!event.public) {
+                    event.channel.sendMessage("Not here, sorry.")
                     return
                 }
 
