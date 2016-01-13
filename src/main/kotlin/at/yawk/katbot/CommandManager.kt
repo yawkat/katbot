@@ -32,7 +32,7 @@ class CommandManager @Inject constructor(val eventBus: EventBus, val ircProvider
 
     @Subscribe
     fun userMessage(event: PrivateMessageEvent) {
-        message(event.client, event.actor, null, event.actor, event.message, true)
+        message(event.client, event.actor, null, event.actor, event.message, false)
     }
 
     @Subscribe
