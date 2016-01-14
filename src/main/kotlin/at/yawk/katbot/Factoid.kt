@@ -37,7 +37,7 @@ class Factoid @Inject constructor(val eventBus: EventBus, val catDb: CatDb, val 
             throw CancelEvent
         }
 
-        val canonical = canonicalizeFactoidName(event.message.substring(1))
+        val canonical = canonicalizeFactoidName(event.message)
         if (canonical.isNotEmpty()) {
             val value = dataSource.connection.closed {
                 val statement = it.prepareStatement("select value from factoids where canonicalName = ?")
