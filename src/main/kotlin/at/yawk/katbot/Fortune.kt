@@ -11,8 +11,10 @@ class Fortune @Inject constructor(val eventBus: EventBus) {
         eventBus.subscribe(this)
     }
 
-    private fun getFortune(): String {
-        val process = ProcessBuilder("fortune", "-n", "350", "-s")
+    private fun getFortune(offensive: Boolean = false): String {
+        var args = arrayOf("fortune", "-n", "350", "-s")
+        if (offensive) args += "-o"
+        val process = ProcessBuilder(*args)
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
                 .start()
         val bytes = ByteStreams.toByteArray(process.inputStream)
@@ -21,8 +23,11 @@ class Fortune @Inject constructor(val eventBus: EventBus) {
 
     @Subscribe
     fun command(command: Command) {
-        if (command.message.equals("fortune", ignoreCase = true)) {
-            command.channel.sendMessage(getFortune())
+        if (command.message.startsWith("fortune", ignoreCase = true)) {
+            val args = command.message.substring(7).split(" ").filter { it.isNotBlank() }
+            command.channel.sendMessage(getFortune(
+                    offensive = args.contains("-o")
+            ))
         }
     }
 }
