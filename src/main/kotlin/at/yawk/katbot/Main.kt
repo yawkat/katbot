@@ -93,6 +93,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Ignore>().start()
     injector.getInstance<UrbanDictionary>().start()
     injector.getInstance<RoleManager>().start()
+    injector.getInstance<Fortune>().start()
 }
 
 private fun connect(config: Config): Client {
