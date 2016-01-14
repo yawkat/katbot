@@ -16,7 +16,7 @@ class Fortune @Inject constructor(val eventBus: EventBus) {
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
                 .start()
         val bytes = ByteStreams.toByteArray(process.inputStream)
-        return String(bytes) // platform encoding
+        return String(bytes).replace("\\s+".toRegex(), " ") // platform encoding
     }
 
     @Subscribe
