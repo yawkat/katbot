@@ -25,7 +25,7 @@ class Factoid @Inject constructor(val eventBus: EventBus, val catDb: CatDb, val 
             }
 
             val splitIndex = event.message.indexOf(" is ")
-            val canonical = canonicalizeFactoidName(event.message.substring(1, splitIndex))
+            val canonical = canonicalizeFactoidName(event.message.substring(0, splitIndex))
             val value = event.message.substring(splitIndex + 4).trimEnd()
             dataSource.connection.closed {
                 val statement = it.prepareStatement("merge into factoids (canonicalName, value) values (?, ?)")
