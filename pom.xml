@@ -22,6 +22,10 @@
             <id>kitteh</id>
             <url>http://repo.kitteh.org/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>yawkat</id>
+            <url>https://mvn.yawk.at/</url>
+        </repository>
     </repositories>
 
     <dependencies>
