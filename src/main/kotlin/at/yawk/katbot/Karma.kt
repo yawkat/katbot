@@ -100,7 +100,7 @@ class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: Object
                 val subject = viewMatcher.group(2).trim { it <= ' ' }
                 if (!subject.isEmpty()) {
                     val value = dataSource.connection.closed { getKarma(it, canonicalizeSubjectName(subject)) }
-                    val valueText = if (primes && value != 0L) {
+                    val valueText = if (primes && Math.abs(value) > 1) {
                         var remainder = Math.abs(value)
                         val counts = HashMap<Long, Int>()
                         while (remainder > 1) {
