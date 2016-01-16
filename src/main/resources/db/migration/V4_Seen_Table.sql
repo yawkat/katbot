@@ -1,0 +1,4 @@
+CREATE TABLE seen (
+    nick VARCHAR_IGNORECASE PRIMARY KEY,
+    seen TIMESTAMP
+)
