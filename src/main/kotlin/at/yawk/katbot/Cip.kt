@@ -10,10 +10,12 @@ import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 import java.util.*
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * @author yawkat
  */
+@Singleton
 class Cip @Inject constructor(
         val objectMapper: ObjectMapper,
         val httpClient: HttpClient,

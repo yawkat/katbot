@@ -63,7 +63,7 @@ fun main(args: Array<String>) {
         it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
         it.bind<HttpClient>().toInstance(HttpClientBuilder.create().build())
         it.bind<IrcProvider>().toInstance(object : IrcProvider {
-            override fun findChannels(channelNames: List<String>): List<MessageReceiver> {
+            override fun findChannels(channelNames: Collection<String>): List<MessageReceiver> {
                 return channelNames.map {
                     val channelOptional = client.getChannel(it)
                     if (!channelOptional.isPresent) {
@@ -92,6 +92,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Fortune>().start()
     injector.getInstance<Seen>().start()
     injector.getInstance<Cip>().start()
+    injector.getInstance<EventManager>().start()
 }
 
 private fun connect(config: Config): Client {
