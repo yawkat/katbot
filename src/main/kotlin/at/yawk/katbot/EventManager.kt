@@ -144,8 +144,8 @@ class EventManager @Inject constructor(
                 fun print(time: Temporal): String {
                     return when (time) {
                         is Instant -> print(OffsetDateTime.ofInstant(time, ZONE))
-                        is OffsetDateTime -> time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-                        is LocalDate -> time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                        is OffsetDateTime -> time.format(DateTimeFormatter.ofPattern("EEE yyyy-MM-dd HH:mm"))
+                        is LocalDate -> time.format(DateTimeFormatter.ofPattern("EEE yyyy-MM-dd"))
                         else -> throw UnsupportedOperationException("Unsupported temporal type ${time.javaClass.name}")
                     }
                 }
