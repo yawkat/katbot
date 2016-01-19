@@ -37,9 +37,17 @@ class Cip @Inject constructor(
     @Subscribe
     fun command(command: Command) {
         if (command.message == "cip") {
-            data class Counter(var occupied: Int, var total: Int)
 
-            val state = loadState()
+            val nick = (command.target ?: command.actor).nick
+
+            val state = try {
+                loadState()
+            } catch(e: Exception) {
+                command.channel.sendMessage("$nick, could not fetch data")
+                return
+            }
+
+            data class Counter(var occupied: Int, var total: Int)
             val roomCounters = HashMap<String, Counter>()
             for (entry in state.entries) {
                 val room = roomMappings[entry.key] ?: continue
@@ -49,7 +57,6 @@ class Cip @Inject constructor(
                 if (entry.value.occupied) counter.occupied++
             }
 
-            val nick = (command.target ?: command.actor).nick
             val rooms = roomCounters
                     .entries
                     .sortedBy { -it.value.total }
@@ -63,7 +70,7 @@ class Cip @Inject constructor(
      * @return A map of `pc id -> state`
      */
     fun loadState(): Map<String, ComputerState> {
-        var dataJs = httpClient.execute(HttpGet("http://ircbox.cs.fau.de:1338/?callback=x")).entity.content.use {
+        var dataJs = httpClient.execute(HttpGet("http://${System.getProperty("cipHost")}/?callback=x")).entity.content.use {
             it.reader(StandardCharsets.UTF_8).buffered().readText()
         }
 
