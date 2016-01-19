@@ -91,6 +91,7 @@ fun main(args: Array<String>) {
     injector.getInstance<RoleManager>().start()
     injector.getInstance<Fortune>().start()
     injector.getInstance<Seen>().start()
+    injector.getInstance<Cip>().start()
 }
 
 private fun connect(config: Config): Client {
