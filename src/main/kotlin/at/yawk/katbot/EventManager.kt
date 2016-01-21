@@ -89,16 +89,21 @@ class EventManager @Inject constructor(
         val topicStartTime = OffsetDateTime.ofInstant(now, ZONE).minusHours(2).toInstant()
         val topicEndTime = OffsetDateTime.ofInstant(now, ZONE).plusDays(14).toInstant()
 
-        val topicSuffix = EVENT_TOPIC_PREFIX + events
-                .filter { it.deadline.isAfter(topicStartTime) && it.deadline.isBefore(topicEndTime) }
-                .map { it.name + ": " + it.timeString }
-                .joinToString(" | ")
+        val shownEvents = events.filter { it.deadline.isAfter(topicStartTime) && it.deadline.isBefore(topicEndTime) }
+        val topicSuffix = if (shownEvents.isNotEmpty()) {
+            EVENT_TOPIC_PREFIX + shownEvents
+                    .map { it.name + ": " + it.timeString }
+                    .joinToString(" | ")
+        } else {
+            ""
+        }
+
 
         for (channel in channels) {
             val oldTopic = channel.topic.value
             oldTopic.ifPresent { oldTopic ->
-                val newTopic = if (oldTopic.contains(EVENT_TOPIC_PREFIX)) {
-                    oldTopic.substring(0, oldTopic.indexOf(EVENT_TOPIC_PREFIX)) + topicSuffix
+                val newTopic = if (oldTopic.contains(EVENT_TOPIC_PREFIX.trimEnd())) {
+                    oldTopic.substring(0, oldTopic.indexOf(EVENT_TOPIC_PREFIX.trimEnd())) + topicSuffix
                 } else {
                     oldTopic + topicSuffix
                 }
