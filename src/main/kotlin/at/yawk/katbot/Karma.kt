@@ -64,12 +64,12 @@ class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: Object
 
                 val canonicalizedSubject = canonicalizeSubjectName(subject)
                 if (!throttle.trySend(canonicalizedSubject)) {
-                    return
+                    throw CancelEvent
                 }
 
                 if (!event.public) {
                     event.channel.sendMessage("Not here, sorry.")
-                    return
+                    throw CancelEvent
                 }
 
                 val newKarma = dataSource.connection.closed {
