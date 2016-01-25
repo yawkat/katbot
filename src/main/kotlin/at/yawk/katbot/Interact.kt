@@ -22,7 +22,10 @@ class Interact @Inject constructor(val eventBus: EventBus, val config: Config) {
         if (matcher.matches()) {
             val command = matcher.group(1)
             val interactions = config.interactions[command.toLowerCase()]
-            val target = matcher.group(2)
+            var target = matcher.group(2)
+            if (target == event.channel.client.nick) {
+                target = event.actor.nick
+            }
             if (interactions != null && target.isNotEmpty()) {
                 Template(randomChoice(interactions))
                         .set("target", target)
