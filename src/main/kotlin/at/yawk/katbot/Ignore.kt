@@ -6,9 +6,9 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class Ignore @Inject constructor(val config: Config, val ircProvider: IrcProvider) {
+class Ignore @Inject constructor(val config: Config, val eventBus: EventBus) {
     fun start() {
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     @Subscribe(priority = -1000)

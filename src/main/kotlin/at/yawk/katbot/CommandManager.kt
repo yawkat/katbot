@@ -11,7 +11,7 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class CommandManager @Inject constructor(val eventBus: EventBus, val ircProvider: IrcProvider) {
+class CommandManager @Inject constructor(val eventBus: EventBus) {
     companion object {
         private inline fun indexOf(s: CharSequence, startIndex: Int, predicate: (Char) -> Boolean): Int? {
             for (i in startIndex..s.length - 1) {
@@ -27,7 +27,7 @@ class CommandManager @Inject constructor(val eventBus: EventBus, val ircProvider
     }
 
     fun start() {
-        ircProvider.registerEventListener(this)
+        eventBus.subscribe(this)
     }
 
     @Subscribe

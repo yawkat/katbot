@@ -13,14 +13,18 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 
-        <kotlin.version>1.0.0-beta-3595</kotlin.version>
-        <jackson.version>2.7.0-rc2</jackson.version>
+        <kotlin.version>1.0.0-beta-4589</kotlin.version>
+        <jackson.version>2.7.0</jackson.version>
     </properties>
 
     <repositories>
         <repository>
             <id>kitteh</id>
             <url>http://repo.kitteh.org/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>yawkat</id>
+            <url>https://mvn.yawk.at/</url>
         </repository>
     </repositories>
 

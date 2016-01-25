@@ -2,12 +2,12 @@ package at.yawk.katbot
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
-import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.sql.Connection
 import java.time.Clock
+import java.util.*
 import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.sql.DataSource
@@ -23,7 +23,7 @@ class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: Object
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
         private val MANIPULATE_PATTERN = Pattern.compile("$SUBJECT_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
-        private val VIEW_PATTERN = Pattern.compile("karma $SUBJECT_PATTERN(:? .*)?", Pattern.CASE_INSENSITIVE)
+        private val VIEW_PATTERN = Pattern.compile("karma(p?) $SUBJECT_PATTERN", Pattern.CASE_INSENSITIVE)
 
         private val CLOCK = Clock.systemUTC()
     }
@@ -64,12 +64,12 @@ class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: Object
 
                 val canonicalizedSubject = canonicalizeSubjectName(subject)
                 if (!throttle.trySend(canonicalizedSubject)) {
-                    return
+                    throw CancelEvent
                 }
 
                 if (!event.public) {
                     event.channel.sendMessage("Not here, sorry.")
-                    return
+                    throw CancelEvent
                 }
 
                 val newKarma = dataSource.connection.closed {
@@ -96,11 +96,29 @@ class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: Object
         } else {
             val viewMatcher = VIEW_PATTERN.matcher(event.message)
             if (viewMatcher.matches()) {
-                val subject = viewMatcher.group(1).trim { it <= ' ' }
+                val primes = viewMatcher.group(1) == "p"
+                val subject = viewMatcher.group(2).trim { it <= ' ' }
                 if (!subject.isEmpty()) {
                     val value = dataSource.connection.closed { getKarma(it, canonicalizeSubjectName(subject)) }
-                    event.channel.sendMessage(
-                            subject + " has a karma level of " + value + ", " + event.actor.nick)
+                    val valueText = if (primes && Math.abs(value) > 1) {
+                        var remainder = Math.abs(value)
+                        val counts = HashMap<Long, Int>()
+                        while (remainder > 1) {
+                            for (i in 2..remainder) {
+                                if (remainder % i == 0L) {
+                                    counts.compute(i, { k, old -> (old ?: 0) + 1 })
+                                    remainder /= i
+                                    break
+                                }
+                            }
+                        }
+                        val string = counts.map { if (it.value <= 1) it.key.toString() else "${it.key}^${it.value}" }
+                                .joinToString(" * ")
+                        if (value < 0) "-$string" else string
+                    } else {
+                        value.toString()
+                    }
+                    event.channel.sendMessage("$subject has a karma level of $valueText, ${event.actor.nick}")
                     throw CancelEvent
                 }
             }
