@@ -13,7 +13,8 @@ data class Config(
         val paste: at.yawk.paste.client.Config,
         val interactions: Map<String, List<String>>,
         val ignore: Set<String>,
-        val eventChannels: Set<String>
+        val eventChannels: Set<String>,
+        val dockerUrl: String
 ) {
     data class Server(
             val host: String,
