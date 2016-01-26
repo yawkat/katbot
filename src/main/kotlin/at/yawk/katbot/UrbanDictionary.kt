@@ -31,7 +31,7 @@ class UrbanDictionary @Inject constructor(val eventBus: EventBus, val urlShorten
 
             if (!definition.select(".contributor").any()) {
                 event.channel.sendMessage("${event.actor.nick}, no result found!")
-                return
+                throw CancelEvent
             }
 
             val title = definition.select(".def-header .word").text()
