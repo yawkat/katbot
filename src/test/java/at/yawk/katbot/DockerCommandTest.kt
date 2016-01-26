@@ -8,7 +8,7 @@ fun main(args: Array<String>) {
     val command = DockerCommand(
             EventBus(),
             DockerClient.builder()
-                    .url("http://46.101.227.212:2375")
+                    .url(args[0])
                     .build(),
             Mockito.mock(PasteClient::class.java)
     )

@@ -39,6 +39,7 @@ class Seen @Inject constructor(val eventBus: EventBus, val dataSource: DataSourc
                 val datetime = LocalDateTime.ofInstant(seen, ZoneId.of("Europe/Berlin"))
                 command.channel.sendMessage("I have last seen $nick on ${datetime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}")
             }
+            throw CancelEvent
         }
     }
 

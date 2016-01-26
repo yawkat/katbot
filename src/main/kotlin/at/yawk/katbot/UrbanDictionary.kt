@@ -47,6 +47,7 @@ class UrbanDictionary @Inject constructor(val eventBus: EventBus, val urlShorten
 
             val shortUrl = urlShortener.shorten(URI(url))
             event.channel.sendMessage("${event.actor.nick}, $shortened $shortUrl")
+            throw CancelEvent
         }
     }
 }
