@@ -1,6 +1,5 @@
 package at.yawk.katbot
 
-import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
 
@@ -33,8 +32,7 @@ class Decide @Inject constructor(val eventBus: EventBus) {
             start = end + 1
         }
         val answer = when (possibilities.size) {
-            0 -> "~decide <choices>"
-            1 -> if (ThreadLocalRandom.current().nextBoolean()) "yes" else "no"
+            0, 1 -> if (ThreadLocalRandom.current().nextBoolean()) "yes" else "no"
             else -> randomChoice(possibilities)
         }
 
