@@ -1,5 +1,7 @@
 package at.yawk.katbot
 
+import at.yawk.docker.DockerClient
+import at.yawk.paste.client.PasteClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -75,6 +77,8 @@ fun main(args: Array<String>) {
                 }.filterNotNull()
             }
         })
+        it.bind<PasteClient>().toInstance(PasteClient(config.paste, jsonMapper))
+        it.bind<DockerClient>().toInstance(DockerClient.builder().url(config.dockerUrl).build())
     })
 
     injector.getInstance<CommandManager>().start()
@@ -93,6 +97,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Seen>().start()
     injector.getInstance<Cip>().start()
     injector.getInstance<EventManager>().start()
+    injector.getInstance<DockerCommand>().start()
 }
 
 private fun connect(config: Config): Client {

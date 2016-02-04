@@ -65,6 +65,7 @@ class Cip @Inject constructor(
                     .map { "${it.key}: ${it.value.occupied}/${it.value.total}" }
                     .joinToString(" ")
             command.channel.sendMessage("$nick, $rooms")
+            throw CancelEvent
         }
     }
 

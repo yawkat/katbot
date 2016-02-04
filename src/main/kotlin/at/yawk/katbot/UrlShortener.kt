@@ -2,7 +2,6 @@ package at.yawk.katbot
 
 import at.yawk.paste.client.PasteClient
 import at.yawk.paste.model.URLPasteData
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.ImplementedBy
 import java.net.URI
 import javax.inject.Inject
@@ -17,10 +16,8 @@ interface UrlShortener {
 
 internal class PasteUrlShortenerImpl @Inject constructor(
         val config: Config,
-        val objectMapper: ObjectMapper
+        val pasteClient: PasteClient
 ) : UrlShortener {
-
-    private val pasteClient = PasteClient(config.paste, objectMapper)
 
     override fun shorten(uri: URI): URI {
         val pasteData = URLPasteData()

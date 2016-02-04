@@ -28,6 +28,7 @@ class Fortune @Inject constructor(val eventBus: EventBus) {
             command.channel.sendMessage(getFortune(
                     offensive = args.contains("-o")
             ))
+            throw CancelEvent
         }
     }
 }
