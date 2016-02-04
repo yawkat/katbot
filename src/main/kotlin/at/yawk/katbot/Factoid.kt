@@ -52,6 +52,7 @@ class Factoid @Inject constructor(val eventBus: EventBus, val catDb: CatDb, val 
                         .setWithParameter("cat", { tags ->
                             catDb.getImage(*tags.split("|").toTypedArray()).url
                         })
+                        .setWithParameter("random", { choices -> randomChoice(choices.split("|")) })
                         .sendAsReply(event)
                 throw CancelEvent
             }
