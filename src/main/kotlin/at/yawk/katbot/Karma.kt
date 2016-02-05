@@ -18,7 +18,12 @@ internal const val NICK_PATTERN = "([\\w\\-`öäü\\[\\]]+)"
 /**
  * @author yawkat
  */
-class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: ObjectMapper, val dataSource: DataSource) {
+class Karma @Inject constructor(
+        val eventBus: EventBus,
+        val objectMapper: ObjectMapper,
+        val dataSource: DataSource,
+        val roleManager: RoleManager
+) {
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
@@ -63,7 +68,8 @@ class Karma @Inject constructor(val eventBus: EventBus, val objectMapper: Object
                 val throttle = userThrottles.getOrPut(event.actor.nick, { MessageThrottle(CLOCK) })
 
                 val canonicalizedSubject = canonicalizeSubjectName(subject)
-                if (!throttle.trySend(canonicalizedSubject)) {
+                if (!throttle.trySend(canonicalizedSubject)
+                        && !roleManager.hasRole(event.actor, Role.IGNORE_THROTTLE)) {
                     throw CancelEvent
                 }
 
