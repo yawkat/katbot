@@ -74,10 +74,10 @@ class Factoid @Inject constructor(
         while (iterator.hasNext()) {
             val other = iterator.next()
             if (other.components.size == entry.components.size &&
-                    equalsCanonical(other.canonicalName, entry.canonicalName)) {
+                    equalsCanonical(other.name, entry.name)) {
                 dataSource.connection.closed {
                     val statement = it.prepareStatement("delete from factoids where canonicalName = ?")
-                    statement.setString(1, other.canonicalName)
+                    statement.setString(1, other.name)
                     statement.execute()
                 }
                 iterator.remove()
@@ -86,7 +86,7 @@ class Factoid @Inject constructor(
         if (insertIntoDb) {
             dataSource.connection.closed {
                 val statement = it.prepareStatement("insert into factoids (canonicalName, value) values (?, ?)")
-                statement.setString(1, entry.canonicalName)
+                statement.setString(1, entry.name)
                 statement.setString(2, entry.value)
                 statement.execute()
             }
@@ -134,7 +134,7 @@ class Factoid @Inject constructor(
                 if (match != null) {
                     // detect infinite loop
                     if (event.hasCause { it.meta == factoid }) {
-                        event.channel.sendMessage("Infinite loop in factoid ${factoid.canonicalName}")
+                        event.channel.sendMessage("Infinite loop in factoid ${factoid.name}")
                         throw CancelEvent
                     }
 
@@ -163,7 +163,7 @@ class Factoid @Inject constructor(
     }
 
     private data class Entry(
-            val canonicalName: String,
+            val name: String,
             val value: String
     ) {
         companion object {
@@ -171,7 +171,7 @@ class Factoid @Inject constructor(
             private val LAST_PARAMETER_PATTERN: Pattern = ".+".toPattern(Pattern.CASE_INSENSITIVE)
         }
 
-        val components = canonicalName.split('$')
+        val components = name.split('$')
         var response = Template(value)
 
         fun match(string: String): Template? {
