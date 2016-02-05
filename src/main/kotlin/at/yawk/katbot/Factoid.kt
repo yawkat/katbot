@@ -72,7 +72,8 @@ class Factoid @Inject constructor(
         val iterator = factoids.iterator()
         while (iterator.hasNext()) {
             val other = iterator.next()
-            if (equalsCanonical(other.canonicalName, entry.canonicalName)) {
+            if (other.components.size == entry.components.size &&
+                    equalsCanonical(other.canonicalName, entry.canonicalName)) {
                 dataSource.connection.closed {
                     val statement = it.prepareStatement("delete from factoids where canonicalName = ?")
                     statement.setString(1, other.canonicalName)
