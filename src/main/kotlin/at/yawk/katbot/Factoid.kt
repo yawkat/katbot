@@ -25,6 +25,7 @@ class Factoid @Inject constructor(
                     canonicalChars.set(c.toInt())
                 }
             }
+            canonicalChars.set(' '.toInt())
         }
 
         private fun isCanonicalChar(char: Char) = canonicalChars.get(char.toInt())
@@ -126,9 +127,10 @@ class Factoid @Inject constructor(
             throw CancelEvent
         }
 
-        if (!equalsCanonical(event.message, "")) {
+        val message = event.message.trim()
+        if (!equalsCanonical(message, "")) {
             for (factoid in factoids) {
-                val match = factoid.match(event.message)
+                val match = factoid.match(message)
                 if (match != null) {
                     // detect infinite loop
                     if (event.hasCause { it.meta == factoid }) {
