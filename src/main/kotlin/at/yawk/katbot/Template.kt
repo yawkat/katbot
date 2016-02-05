@@ -55,10 +55,13 @@ data class Template(private val data: String) {
         }
     }
 
-    fun sendAsReply(command: Command) {
-        this.set("actor", command.actor.nick)
+    fun setActorAndTarget(command: Command): Template {
+        return set("actor", command.actor.nick)
                 .set("target", (command.target ?: command.actor).nick)
-                .sendTo(command.channel)
+    }
+
+    fun sendAsReply(command: Command) {
+        setActorAndTarget(command).sendTo(command.channel)
     }
 
     override fun toString(): String = data

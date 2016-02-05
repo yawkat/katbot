@@ -13,7 +13,7 @@ import javax.inject.Inject
 class UrbanDictionary @Inject constructor(val eventBus: EventBus, val urlShortener: UrlShortener) {
     companion object {
         private val PATTERN = "(?:ud|urban|ub|urbandictionary) (.+)".toPattern(Pattern.CASE_INSENSITIVE)
-        private const val MESSAGE_LENGTH_LIMIT = 350
+        const val MESSAGE_LENGTH_LIMIT = 350
     }
 
     fun start() {
