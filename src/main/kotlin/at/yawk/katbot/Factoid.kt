@@ -31,7 +31,7 @@ class Factoid @Inject constructor(
         private fun isCanonicalChar(char: Char) = canonicalChars.get(char.toInt())
 
         /**
-         * @return The index of the first canonical character in [string] that is not part of prefix or `null` if the prefix did not apply.
+         * @return The index of the character after the last canonical character in [string] that is part of prefix or `null` if the prefix did not apply.
          */
         fun startsWithCanonical(string: String, prefix: String): Int? {
             var i = 0
@@ -58,8 +58,6 @@ class Factoid @Inject constructor(
             }
 
             if (j < prefix.length) return null // haven't used full prefix
-
-            while (i < string.length && !isCanonicalChar(string[i])) i++
             return i
         }
 
