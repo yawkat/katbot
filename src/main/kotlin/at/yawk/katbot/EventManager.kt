@@ -132,6 +132,7 @@ class EventManager @Inject constructor(
             }
             events.add(Event(event.get("name").asText(), time))
         }
+        events.sortBy { it.deadline }
         return events
     }
 
