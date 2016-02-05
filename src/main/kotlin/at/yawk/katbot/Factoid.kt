@@ -165,7 +165,7 @@ class Factoid @Inject constructor(
     ) {
         companion object {
             private val INNER_PARAMETER_PATTERN: Pattern = NICK_PATTERN.toPattern(Pattern.CASE_INSENSITIVE)
-            private val LAST_PARAMETER_PATTERN: Pattern = ".*".toPattern(Pattern.CASE_INSENSITIVE)
+            private val LAST_PARAMETER_PATTERN: Pattern = ".+".toPattern(Pattern.CASE_INSENSITIVE)
         }
 
         val components = canonicalName.split('$')
