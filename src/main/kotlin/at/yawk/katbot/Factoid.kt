@@ -90,7 +90,21 @@ class Factoid @Inject constructor(
             }
         }
         factoids.add(entry)
-        factoids.sortBy { it.components.size }
+
+        // sort by how "specific" components are.
+        factoids.sort { lhs, rhs ->
+            // a single component is most specific (exact match)
+            if (lhs.components.size == 1 && rhs.components.size != 1) return@sort -1
+            if (lhs.components.size != 1 && rhs.components.size == 1) return@sort 1
+            // then, factoids with more parameters are generally more specific
+            if (lhs.components.size > rhs.components.size) return@sort -1
+            if (lhs.components.size < rhs.components.size) return@sort 1
+            // finally, the longer the components, the more specific
+            if (lhs.components.map { it.length }.sum() > rhs.components.map { it.length }.sum()) return@sort -1
+            if (lhs.components.map { it.length }.sum() < rhs.components.map { it.length }.sum()) return@sort 1
+            // else, no difference
+            0
+        }
     }
 
     fun start() {

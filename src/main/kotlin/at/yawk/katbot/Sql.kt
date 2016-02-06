@@ -46,7 +46,7 @@ class Sql @Inject constructor(
                 }
             } catch (e: SQLException) {
                 command.channel.sendMessage(e.toString())
-                return
+                throw CancelEvent
             }
             if (results.isEmpty()) {
                 command.channel.sendMessage("No results.")
