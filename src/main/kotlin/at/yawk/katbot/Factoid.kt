@@ -6,6 +6,23 @@ import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.sql.DataSource
 
+val FACTOID_COMPARATOR: Comparator<Entry> = Comparator { lhs, rhs -> compareFactoids(lhs, rhs) }
+val PASSES = 0..1
+
+private fun compareFactoids(lhs: Entry, rhs: Entry): Int {
+    // a single component is most specific (exact match)
+    if (lhs.components.size == 1 && rhs.components.size != 1) return -1
+    if (lhs.components.size != 1 && rhs.components.size == 1) return 1
+    // then, factoids with more parameters are generally more specific
+    if (lhs.components.size > rhs.components.size) return -1
+    if (lhs.components.size < rhs.components.size) return 1
+    // finally, the longer the components, the more specific
+    if (lhs.components.map { it.length }.sum() > rhs.components.map { it.length }.sum()) return -1
+    if (lhs.components.map { it.length }.sum() < rhs.components.map { it.length }.sum()) return 1
+    // else, no difference
+    return 0
+}
+
 /**
  * @author yawkat
  */
@@ -28,7 +45,7 @@ class Factoid @Inject constructor(
             canonicalChars.set(' '.toInt())
         }
 
-        private fun isCanonicalChar(char: Char) = canonicalChars.get(char.toInt())
+        fun isCanonicalChar(char: Char) = canonicalChars.get(char.toInt())
 
         /**
          * @return The index of the character after the last canonical character in [string] that is part of prefix or `null` if the prefix did not apply.
@@ -92,19 +109,7 @@ class Factoid @Inject constructor(
         factoids.add(entry)
 
         // sort by how "specific" components are.
-        factoids.sort { lhs, rhs ->
-            // a single component is most specific (exact match)
-            if (lhs.components.size == 1 && rhs.components.size != 1) return@sort -1
-            if (lhs.components.size != 1 && rhs.components.size == 1) return@sort 1
-            // then, factoids with more parameters are generally more specific
-            if (lhs.components.size > rhs.components.size) return@sort -1
-            if (lhs.components.size < rhs.components.size) return@sort 1
-            // finally, the longer the components, the more specific
-            if (lhs.components.map { it.length }.sum() > rhs.components.map { it.length }.sum()) return@sort -1
-            if (lhs.components.map { it.length }.sum() < rhs.components.map { it.length }.sum()) return@sort 1
-            // else, no difference
-            0
-        }
+        factoids.sortWith(FACTOID_COMPARATOR)
     }
 
     fun start() {
@@ -141,73 +146,84 @@ class Factoid @Inject constructor(
 
         val message = event.message.trim()
         if (!equalsCanonical(message, "")) {
-            for (factoid in factoids) {
-                val match = factoid.match(message)
-                if (match != null) {
-                    // detect infinite loop
-                    if (event.hasCause { it.meta == factoid }) {
-                        event.channel.sendMessage("Infinite loop in factoid ${factoid.name}")
-                        throw CancelEvent
+            for (pass in PASSES) {
+                for (factoid in factoids) {
+                    val match = factoid.match(message, pass)
+                    if (match != null) {
+                        handleFactoid(event, factoid, match)
                     }
-
-                    val finalTemplate = match.set("sender", event.actor.nick)
-                            .set("cat", { catDb.getImage().url })
-                            .setWithParameter("cat", { tags ->
-                                catDb.getImage(*tags.split("|").toTypedArray()).url
-                            })
-                            .setWithParameter("random", { choices -> randomChoice(choices.split("|")) })
-                            .setActorAndTarget(event)
-                    if (!commandManager.parseAndFire(
-                            event.actor,
-                            event.channel,
-                            finalTemplate.finish(),
-                            event.public,
-                            false,
-                            event.userLocator,
-                            Cause(event, factoid)
-                    )) {
-                        finalTemplate.sendTo(event.channel)
-                    }
-                    throw CancelEvent
                 }
             }
         }
     }
 
-    private data class Entry(
-            val name: String,
-            val value: String
-    ) {
-        companion object {
-            private val INNER_PARAMETER_PATTERN: Pattern = NICK_PATTERN.toPattern(Pattern.CASE_INSENSITIVE)
-            private val LAST_PARAMETER_PATTERN: Pattern = ".+".toPattern(Pattern.CASE_INSENSITIVE)
+    private fun handleFactoid(event: Command, factoid: Entry, match: Template) {
+        // detect infinite loop
+        if (event.hasCause { it.meta == factoid }) {
+            event.channel.sendMessage("Infinite loop in factoid ${factoid.name}")
+            throw CancelEvent
         }
 
-        val components = name.split('$')
-        var response = Template(value)
+        val finalTemplate = match.set("sender", event.actor.nick)
+                .set("cat", { catDb.getImage().url })
+                .setWithParameter("cat", { tags ->
+                    catDb.getImage(*tags.split("|").toTypedArray()).url
+                })
+                .setWithParameter("random", { choices -> randomChoice(choices.split("|")) })
+                .setActorAndTarget(event)
+        if (!commandManager.parseAndFire(
+                event.actor,
+                event.channel,
+                finalTemplate.finish(),
+                event.public,
+                false,
+                event.userLocator,
+                Cause(event, factoid)
+        )) {
+            finalTemplate.sendTo(event.channel)
+        }
+        throw CancelEvent
+    }
+}
 
-        fun match(string: String): Template? {
-            var result = response
-            var i = 0
-            for ((index, component) in components.withIndex()) {
-                if (i > string.length) return null
+data class Entry(
+        val name: String,
+        val value: String
+) {
+    companion object {
+        private val INNER_PARAMETER_PATTERN: Pattern = NICK_PATTERN.toPattern(Pattern.CASE_INSENSITIVE)
+        private val LAST_PARAMETER_PATTERN: Pattern = ".+".toPattern(Pattern.CASE_INSENSITIVE)
+    }
 
-                if (index > 0) {
-                    val pattern = if (index == components.size - 1 && component.isEmpty())
-                        LAST_PARAMETER_PATTERN else INNER_PARAMETER_PATTERN
+    val components = name.split('$')
+    var response = Template(value)
 
-                    val matcher = pattern.matcher(string)
-                    if (!matcher.find(i)) return null
-                    if (matcher.start() != i) return null
-                    result = result.set("$index", matcher.group())
-                    i = matcher.end()
-                }
+    fun match(string: String, pass: Int): Template? {
+        var result = response
+        var i = 0
+        for ((index, component) in components.withIndex()) {
+            if (i > string.length) return null
 
-                i += startsWithCanonical(string.substring(i), component) ?: return null
+            if (index > 0) {
+                val pattern = if (index == components.size - 1 && component.isEmpty())
+                    LAST_PARAMETER_PATTERN else INNER_PARAMETER_PATTERN
+
+                val matcher = pattern.matcher(string)
+                if (!matcher.find(i)) return null
+                if (matcher.start() != i) return null
+                result = result.set("$index", matcher.group())
+                i = matcher.end()
             }
-            if (i < string.length) return null
 
-            return result
+            i += Factoid.startsWithCanonical(string.substring(i), component) ?: return null
         }
+        if (pass > 0) {
+            // if this isn't the first pass, skip trailing non-canonical chars.
+            // this makes 'a' match 'a#' while still matching 'a $'
+            while (i < string.length && !Factoid.isCanonicalChar(string[i])) i++
+        }
+        if (i < string.length) return null
+
+        return result
     }
 }
