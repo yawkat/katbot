@@ -3,10 +3,17 @@ package at.yawk.katbot
 import org.kitteh.irc.client.library.element.MessageReceiver
 import java.util.regex.Pattern
 
+private const val MAX_MESSAGE_LENGTH = 450
+
 /**
  * @author yawkat
  */
-data class Template(private val data: String) {
+class Template(data: String) {
+    private val data =
+            if (data.length > MAX_MESSAGE_LENGTH)
+                data.substring(0, MAX_MESSAGE_LENGTH)
+            else data
+
     private fun toTemplateExpression(name: String): String {
         // ${name}
         return "${'$'}{$name}"
@@ -65,4 +72,7 @@ data class Template(private val data: String) {
     }
 
     override fun toString(): String = data
+
+    override fun equals(other: Any?) = other is Template && other.data == this.data
+    override fun hashCode() = data.hashCode() + 1
 }
