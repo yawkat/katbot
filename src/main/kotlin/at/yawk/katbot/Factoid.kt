@@ -144,6 +144,21 @@ class Factoid @Inject constructor(
             throw CancelEvent
         }
 
+        if (event.message.startsWith("raw ", ignoreCase = true)) {
+            val message = event.message.substring("raw ".length).trim()
+            for (pass in PASSES) {
+                for (factoid in factoids) {
+                    val match = factoid.match(message, pass)
+                    if (match != null) {
+                        event.channel.sendMessage("~${factoid.name} = ${factoid.value}")
+                        throw CancelEvent
+                    }
+                }
+            }
+            event.channel.sendMessage("No such factoid")
+            throw CancelEvent
+        }
+
         val message = event.message.trim()
         if (!equalsCanonical(message, "")) {
             for (pass in PASSES) {
