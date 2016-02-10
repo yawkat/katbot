@@ -1,7 +1,37 @@
 package at.yawk.katbot
 
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
+
+internal fun parseParameters(message: String): ArrayList<String> {
+    val possibilities = arrayListOf<String>()
+    val possibilityBuilder = StringBuilder()
+    var quoted = false
+    var escaped = false
+    for (c in message) {
+        if (!escaped) {
+            if (c == '"') {
+                quoted = !quoted
+                continue
+            } else if (c == '\\') {
+                escaped = true
+                continue
+            } else if (c == ' ' && !quoted) {
+                if (possibilityBuilder.length > 0) {
+                    possibilities.add(possibilityBuilder.toString())
+                    possibilityBuilder.setLength(0)
+                }
+                continue
+            }
+        }
+        possibilityBuilder.append(c)
+    }
+    if (possibilityBuilder.length > 0) {
+        possibilities.add(possibilityBuilder.toString())
+    }
+    return possibilities
+}
 
 /**
  * @author yawkat
@@ -13,24 +43,10 @@ class Decide @Inject constructor(val eventBus: EventBus) {
 
     @Subscribe
     fun command(event: Command) {
-        if (!event.message.startsWith("decide")) return
-        val possibilities = arrayListOf<String>()
+        val message = event.message
+        if (!message.startsWith("decide")) return
         var start = "decide ".length
-        while (start < event.message.length) {
-            var end = event.message.indexOf(' ', start)
-            if (end == -1) end = event.message.length
-            var possibility = event.message.substring(start, end)
-            if (possibility.length > 0) {
-                if (possibility[0] == '"') {
-                    end = event.message.indexOf('"', end)
-                    possibility = event.message.substring(start + 1, end)
-                }
-                if (!possibility.trim().isEmpty()) {
-                    possibilities += possibility.trim()
-                }
-            }
-            start = end + 1
-        }
+        val possibilities = parseParameters(message.substring(start))
         val answer = when (possibilities.size) {
             0, 1 -> if (ThreadLocalRandom.current().nextBoolean()) "yes" else "no"
             else -> randomChoice(possibilities)
