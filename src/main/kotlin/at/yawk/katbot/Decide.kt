@@ -45,8 +45,7 @@ class Decide @Inject constructor(val eventBus: EventBus) {
     fun command(event: Command) {
         val message = event.message
         if (!message.startsWith("decide")) return
-        var start = "decide ".length
-        val possibilities = parseParameters(message.substring(start))
+        val possibilities = parseParameters(message.substring("decide".length))
         val answer = when (possibilities.size) {
             0, 1 -> if (ThreadLocalRandom.current().nextBoolean()) "yes" else "no"
             else -> randomChoice(possibilities)
