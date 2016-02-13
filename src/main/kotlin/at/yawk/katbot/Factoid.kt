@@ -78,7 +78,11 @@ class Factoid @Inject constructor(
             return i
         }
 
-        fun equalsCanonical(a: String, b: String) = startsWithCanonical(a, b) == a.length
+        fun equalsCanonical(a: String, b: String): Boolean {
+            val prefix = startsWithCanonical(a, b) ?: return false
+            for (i in prefix..a.length - 1) if (isCanonicalChar(a[i])) return false
+            return true
+        }
     }
 
     private val factoids = ArrayList<Entry>()
@@ -216,12 +220,16 @@ data class Entry(
     fun match(string: String, pass: Int): Template? {
         var result = response
         var i = 0
+
+        var hasTrailingParameter = false
         for ((index, component) in components.withIndex()) {
             if (i > string.length) return null
 
             if (index > 0) {
-                val pattern = if (index == components.size - 1 && component.isEmpty())
-                    LAST_PARAMETER_PATTERN else INNER_PARAMETER_PATTERN
+                val pattern = if (index == components.size - 1 && component.isEmpty()) {
+                    hasTrailingParameter = true
+                    LAST_PARAMETER_PATTERN
+                } else INNER_PARAMETER_PATTERN
 
                 val matcher = pattern.matcher(string)
                 if (!matcher.find(i)) return null
@@ -232,8 +240,8 @@ data class Entry(
 
             i += Factoid.startsWithCanonical(string.substring(i), component) ?: return null
         }
-        if (pass > 0) {
-            // if this isn't the first pass, skip trailing non-canonical chars.
+        if (!hasTrailingParameter || pass > 0) {
+            // if this isn't the first pass or we have no trailing parameter, skip trailing non-canonical chars.
             // this makes 'a' match 'a#' while still matching 'a $'
             while (i < string.length && !Factoid.isCanonicalChar(string[i])) i++
         }
