@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+import os
+import shutil
 import subprocess
 import sys
+import socket
 
 USER = "katbot"
 OUTPUT_PREFIX = " OUTPUT "
@@ -28,6 +31,15 @@ def run(command):
         print(OUTPUT_PREFIX + line)
     print(EOF)
 
+# fix host
+with open("/etc/hosts", "w") as f:
+    f.write("127.0.0.1 " + socket.gethostname())
+# chdir to home
+os.chdir("/home/" + USER)
+# protect .bashrc
+with open(".bashrc", "w"):
+    pass
+shutil.chown(".bashrc", "root", "root")
 
 for command_to_run in sys.stdin:
     run(command_to_run)
