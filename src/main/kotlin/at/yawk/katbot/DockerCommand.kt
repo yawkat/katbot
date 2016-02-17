@@ -153,17 +153,17 @@ class DockerCommand @Inject constructor(val eventBus: EventBus, val dockerClient
             })
         }
 
-        var initCommand = "cat > /repl.sh << \"EOF\"\n"
+        var initCommand = "cat > /repl.py << \"EOF\"\n"
 
         BufferedReader(
-                InputStreamReader(DockerCommand::class.java.getResourceAsStream("repl.sh"), StandardCharsets.UTF_8)
+                InputStreamReader(DockerCommand::class.java.getResourceAsStream("repl.py"), StandardCharsets.UTF_8)
         ).use {
             initCommand += it.lineSequence().toList().joinToString("\n")
         }
 
         initCommand += "\nEOF\n"
-        initCommand += "chmod 500 /repl.sh\n"
-        initCommand += "/repl.sh || exit\n"
+        initCommand += "chmod 500 /repl.py\n"
+        initCommand += "/repl.py || exit\n"
 
         writeInput(initCommand)
 
