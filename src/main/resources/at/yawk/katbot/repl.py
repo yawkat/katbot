@@ -2,9 +2,9 @@
 
 import os
 import shutil
+import socket
 import subprocess
 import sys
-import socket
 
 USER = "katbot"
 OUTPUT_PREFIX = " OUTPUT "
@@ -24,6 +24,8 @@ def run(command):
             subprocess.call(("pkill", "-9", "-u", USER))
             stdout, _ = process.communicate()
     output = stdout.decode("utf-8")  # type: str
+    # remove non-ascii chars
+    output = output.encode("ascii", errors='ignore').decode("ascii")
     if len(output) > MAX_OUTPUT_LENGTH:
         output = output[0:MAX_OUTPUT_LENGTH]
     lines = output.splitlines(keepends=False)
