@@ -29,7 +29,6 @@ class UrlTitleLoader @Inject constructor(
         val url = try {
             URL(matcher.group())
         } catch (e: MalformedURLException) {
-            e.printStackTrace()
             return
         }
         if (url.protocol != "http" && url.protocol != "https") return
@@ -43,7 +42,6 @@ class UrlTitleLoader @Inject constructor(
                     event.channel.sendMessage("${event.actor.nick}'s title: $canonicalTitle")
                 }
             } catch(e: IOException) {
-                e.printStackTrace()
             }
         }
     }
