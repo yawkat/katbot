@@ -54,7 +54,14 @@ class CommandManager @Inject constructor(val eventBus: EventBus) {
             }
         }
 
-        parseAndFire(actor, location, message, public, !public, userLocator, null)
+        if (parseAndFire(actor, location, message,
+                public = public,
+                parseWithoutPrefix = !public,
+                userLocator = userLocator,
+                cause = null)) {
+
+            throw CancelEvent
+        }
     }
 
     fun parseAndFire(
@@ -83,14 +90,13 @@ class CommandManager @Inject constructor(val eventBus: EventBus) {
                 val command = message.substring(commandStart)
 
                 submit(Command(location, userLocator, actor, target, command, public, cause))
-                return true
             } else {
                 val commandStart = findNonWhitespace(message, 1) ?: return true
                 val command = message.substring(commandStart)
 
                 submit(Command(location, userLocator, actor, null, command, public, cause))
-                return true
             }
+            return true
         }
 
         val ourNick = location.client.nick

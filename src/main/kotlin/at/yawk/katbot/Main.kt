@@ -98,6 +98,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Cip>().start()
     injector.getInstance<EventManager>().start()
     injector.getInstance<Sql>().start()
+    injector.getInstance<UrlTitleLoader>().start()
     injector.getInstance<DockerCommand>().start()
 }
 
