@@ -73,7 +73,7 @@ internal fun woschinize(msg: String): String {
 private data class Substitution(val english: String, val wosch: String, val wordBoundary: Boolean = false)
 
 private val substitutions = listOf(
-        Substitution("internet", "weltennetz"),
+        Substitution("internet", "zwischennetz"),
         Substitution("cip", "rechnerschwimmbecken"),
         Substitution("thread", "faden"),
 
