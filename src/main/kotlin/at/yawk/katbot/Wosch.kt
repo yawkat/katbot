@@ -49,7 +49,8 @@ internal fun woschinize(msg: String): String {
             if (index == -1) break
             if (substitution.wordBoundary) {
                 if (index > 0 && lower[index - 1].isLetter()) continue
-                if (index < lower.length - 1 && lower[index + 1].isLetter()) continue
+                val end = index + substitution.english.length
+                if (end < lower.length && lower[end].isLetter()) continue
             }
 
             val sub = if (newMessage[index + offset].isUpperCase()) {

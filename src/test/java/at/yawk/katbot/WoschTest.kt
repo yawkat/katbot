@@ -32,4 +32,9 @@ class WoschTest {
     fun `capitalize`() {
         assertEquals(woschinize("thread Thread"), "faden Faden")
     }
+
+    @Test
+    fun `boundary`() {
+        assertEquals(woschinize("if-schleife"), "falls-schleife")
+    }
 }
