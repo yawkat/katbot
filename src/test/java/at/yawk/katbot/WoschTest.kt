@@ -37,4 +37,9 @@ class WoschTest {
     fun `boundary`() {
         assertEquals(woschinize("if-schleife"), "falls-schleife")
     }
+
+    @Test
+    fun `includen`() {
+        assertEquals(woschinize("includen"), "einbinden")
+    }
 }
