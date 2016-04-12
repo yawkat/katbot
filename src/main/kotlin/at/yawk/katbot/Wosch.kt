@@ -77,6 +77,7 @@ private val substitutions = listOf(
         Substitution("internet", "zwischennetz"),
         Substitution("cip", "rechnerschwimmbecken"),
         Substitution("thread", "faden"),
+        Substitution("include", "einbinden"),
 
         // http://www.mirko-hansen.de/downloads/wosch.h
         Substitution("*", "zeiger", wordBoundary = true),
