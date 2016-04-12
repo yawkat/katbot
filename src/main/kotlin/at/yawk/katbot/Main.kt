@@ -105,6 +105,7 @@ fun main(args: Array<String>) {
     injector.getInstance<EventManager>().start()
     injector.getInstance<Sql>().start()
     injector.getInstance<UrlTitleLoader>().start()
+    injector.getInstance<Wosch>().start()
     injector.getInstance<DockerCommand>().start()
 }
 
