@@ -89,6 +89,7 @@ fun main(args: Array<String>) {
 
     injector.getInstance<CommandManager>().start()
 
+    injector.getInstance<Restrict>().start()
     injector.getInstance<Karma>().start()
     injector.getInstance<RssFeedListener>().start()
     injector.getInstance<ForumListener>().start()

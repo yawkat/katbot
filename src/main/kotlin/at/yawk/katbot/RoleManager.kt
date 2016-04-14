@@ -121,7 +121,8 @@ class RoleManager @Inject constructor(val eventBus: EventBus, val dataSource: Da
 enum class Role(vararg impliedBy: Role) {
     ADMIN(),
     ADD_FACTOIDS(ADMIN),
-    IGNORE_THROTTLE(ADMIN);
+    IGNORE_THROTTLE(ADMIN),
+    IGNORE_RESTRICT(ADMIN);
 
     /**
      * flat [impliedBy] array.
