@@ -16,7 +16,7 @@ MAX_OUTPUT_LENGTH = 1000
 
 def set_limits():
     resource.setrlimit(resource.RLIMIT_NPROC, (16, 16))  # max processes
-    resource.setrlimit(resource.RLIMIT_CPU, (10, 10))  # max cpu time
+    resource.setrlimit(resource.RLIMIT_CPU, (1, 1))  # max cpu time
 
 
 def run(command):
@@ -29,7 +29,8 @@ def run(command):
         except subprocess.TimeoutExpired:
             process.kill()
             subprocess.call(("pkill", "-STOP", "-u", USER))
-            subprocess.call(("pkill", "-KILL", "-u", USER))
+            while subprocess.call(("pkill", "-KILL", "-u", USER)) == 0:
+                pass
             stdout, _ = process.communicate()
     output = stdout.decode("utf-8")  # type: str
     # remove non-ascii chars
