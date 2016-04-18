@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import os
+import resource
 import shutil
 import socket
 import subprocess
 import sys
-import resource
 
 USER = "katbot"
 OUTPUT_PREFIX = " OUTPUT "
@@ -15,7 +15,8 @@ MAX_OUTPUT_LENGTH = 1000
 
 
 def set_limits():
-    resource.setrlimit(resource.RLIMIT_CPU, (10, 10))
+    resource.setrlimit(resource.RLIMIT_NPROC, (16, 16))  # max processes
+    resource.setrlimit(resource.RLIMIT_CPU, (10, 10))  # max cpu time
 
 
 def run(command):
