@@ -28,8 +28,8 @@ def run(command):
             stdout, _ = process.communicate(timeout=TIMEOUT)
         except subprocess.TimeoutExpired:
             process.kill()
-            subprocess.call(("pkill", "-STOP", "-u", USER))
             while subprocess.call(("pkill", "-KILL", "-u", USER)) == 0:
+                subprocess.call(("pkill", "-STOP", "-u", USER))
                 pass
             stdout, _ = process.communicate()
     output = stdout.decode("utf-8")  # type: str
