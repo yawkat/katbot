@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import pwd
 import resource
 import shutil
 import socket
@@ -20,6 +21,7 @@ def set_limits():
 
 
 def run(command):
+    uid = pwd.getpwnam(USER).pw_uid
     with subprocess.Popen(
             ("sudo", "-u", USER, "script", "-qfc", command, "/dev/null"),
             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -28,8 +30,8 @@ def run(command):
             stdout, _ = process.communicate(timeout=TIMEOUT)
         except subprocess.TimeoutExpired:
             process.kill()
-            while subprocess.call(("pkill", "-KILL", "-u", USER)) == 0:
-                subprocess.call(("pkill", "-STOP", "-u", USER))
+            while subprocess.call(("pkill", "-KILL", "-u", str(uid))) == 0:
+                subprocess.call(("pkill", "-STOP", "-u", str(uid)))
                 pass
             stdout, _ = process.communicate()
     output = stdout.decode("utf-8")  # type: str
