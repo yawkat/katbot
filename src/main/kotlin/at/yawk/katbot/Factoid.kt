@@ -181,6 +181,7 @@ class Factoid @Inject constructor(
                     statement.execute()
                 }
                 factoids.remove(match.first)
+                event.channel.sendMessage("Factoid deleted")
             }
             throw CancelEvent
         }
