@@ -156,30 +156,54 @@ class Factoid @Inject constructor(
 
         if (event.message.startsWith("raw ", ignoreCase = true)) {
             val message = event.message.substring("raw ".length).trim()
-            for (pass in PASSES) {
-                for (factoid in factoids) {
-                    val match = factoid.match(message, pass)
-                    if (match != null) {
-                        event.channel.sendMessage("~${factoid.name} = ${factoid.value}")
-                        throw CancelEvent
-                    }
-                }
+            val match = findFactoid(message)
+            if (match == null) {
+                event.channel.sendMessage("No such factoid")
+            } else {
+                event.channel.sendMessage("~${match.first.name} = ${match.first.value}")
             }
-            event.channel.sendMessage("No such factoid")
+            throw CancelEvent
+        }
+
+        if (event.message.startsWith("delete ", ignoreCase = true)) {
+            if (!roleManager.hasRole(event.actor, Role.DELETE_FACTOIDS)) {
+                event.channel.sendMessage("You are not allowed to do that")
+                throw CancelEvent
+            }
+            val message = event.message.substring("delete ".length).trim()
+            val match = findFactoid(message)
+            if (match == null) {
+                event.channel.sendMessage("No such factoid")
+            } else {
+                dataSource.connection.closed {
+                    val statement = it.prepareStatement("delete from factoids where canoncialName = ?")
+                    statement.setString(1, match.first.name)
+                    statement.execute()
+                }
+                factoids.remove(match.first)
+            }
             throw CancelEvent
         }
 
         val message = event.message.trim()
         if (!equalsCanonical(message, "")) {
-            for (pass in PASSES) {
-                for (factoid in factoids) {
-                    val match = factoid.match(message, pass)
-                    if (match != null) {
-                        handleFactoid(event, factoid, match)
-                    }
+            val match = findFactoid(message)
+            if (match != null) {
+                handleFactoid(event, match.first, match.second)
+            }
+        }
+    }
+
+    private fun findFactoid(message: String): Pair<Entry, Template>? {
+        for (pass in PASSES) {
+            for (factoid in factoids) {
+                val match = factoid.match(message, pass)
+                if (match != null) {
+                    return Pair(factoid, match)
                 }
             }
         }
+        return null
     }
 
     private fun handleFactoid(event: Command, factoid: Entry, match: Template) {
