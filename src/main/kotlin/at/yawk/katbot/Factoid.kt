@@ -176,7 +176,7 @@ class Factoid @Inject constructor(
                 event.channel.sendMessage("No such factoid")
             } else {
                 dataSource.connection.closed {
-                    val statement = it.prepareStatement("delete from factoids where canoncialName = ?")
+                    val statement = it.prepareStatement("delete from factoids where canonicalName = ?")
                     statement.setString(1, match.first.name)
                     statement.execute()
                 }
