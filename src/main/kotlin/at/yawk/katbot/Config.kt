@@ -20,7 +20,7 @@ data class Config(
         val interactions: Map<String, List<String>>,
         val ignore: Set<String>,
         val eventChannels: Set<String>,
-        val dockerUrl: String
+        val docker: DockerCommand.DockerConfig
 ) {
     data class Server(
             val host: String,

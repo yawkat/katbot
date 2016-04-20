@@ -84,7 +84,7 @@ fun main(args: Array<String>) {
             }
         })
         it.bind<PasteClient>().toInstance(PasteClient(config.paste, jsonMapper))
-        it.bind<DockerClient>().toInstance(DockerClient.builder().url(config.dockerUrl).build())
+        it.bind<DockerClient>().toInstance(DockerClient.builder().url(config.docker.url).build())
     })
 
     injector.getInstance<CommandManager>().start()

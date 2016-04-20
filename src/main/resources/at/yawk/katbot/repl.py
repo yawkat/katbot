@@ -15,8 +15,15 @@ MAX_OUTPUT_LENGTH = 1000
 
 
 def set_limits():
-    resource.setrlimit(resource.RLIMIT_NPROC, (16, 16))  # max processes
-    resource.setrlimit(resource.RLIMIT_CPU, (1, 1))  # max cpu time
+    kib = 1024
+    mib = kib * 1024
+
+    resource.setrlimit(resource.RLIMIT_NPROC, (512, 512))  # max processes
+    resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))  # max open files
+    resource.setrlimit(resource.RLIMIT_CPU, (5, 5))  # max cpu time
+    resource.setrlimit(resource.RLIMIT_CORE, (16 * mib, 16 * mib))  # core file maximum size bytes
+    resource.setrlimit(resource.RLIMIT_DATA, (16 * mib, 16 * mib))  # max heap size bytes
+    resource.setrlimit(resource.RLIMIT_RSS, (16 * mib, 16 * mib))  # max resident size bytes
 
 
 def run(command):
@@ -49,12 +56,11 @@ def run(command):
 # fix host
 with open("/etc/hosts", "w") as f:
     f.write("127.0.0.1 " + socket.gethostname())
-# chdir to home
+
+subprocess.call(("userdel", "katbot"))
+subprocess.call(("useradd", "-m", "katbot"))
+shutil.chown("/home/" + USER, USER, USER)
 os.chdir("/home/" + USER)
-# protect .bashrc
-with open(".bashrc", "w"):
-    pass
-shutil.chown(".bashrc", "root", "root")
 
 for command_to_run in sys.stdin:
     run(command_to_run)

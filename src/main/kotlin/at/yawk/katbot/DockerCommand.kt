@@ -35,7 +35,12 @@ fun isPrintableAsciiChar(it: Char) = it >= ' ' && it <= '~'
 /**
  * @author yawkat
  */
-class DockerCommand @Inject constructor(val eventBus: EventBus, val dockerClient: DockerClient, val pasteClient: PasteClient) {
+class DockerCommand @Inject constructor(
+        val eventBus: EventBus,
+        val dockerClient: DockerClient,
+        val pasteClient: PasteClient,
+        val config: Config
+) {
     companion object {
         private val log = LoggerFactory.getLogger(DockerCommand::class.java)
     }
@@ -93,6 +98,7 @@ class DockerCommand @Inject constructor(val eventBus: EventBus, val dockerClient
         containerConfig.networkDisabled = true
         containerConfig.cpuSet = "0" // only first cpu
         containerConfig.hostConfig = HostConfig()
+        containerConfig.hostConfig.binds = listOf("${config.docker.shellHome}:/home/katbot")
 
         log.debug("Creating container...")
         dockerClient.createContainer().name(CONTAINER_NAME).config(containerConfig).send().whenComplete create@ { it, error ->
@@ -219,4 +225,6 @@ class DockerCommand @Inject constructor(val eventBus: EventBus, val dockerClient
 
         log.info("REPL ready")
     }
+
+    data class DockerConfig(val url: String, val shellHome: String)
 }
