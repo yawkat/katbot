@@ -8,6 +8,7 @@ package at.yawk.katbot
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.google.inject.ImplementedBy
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import java.net.URLEncoder
@@ -22,18 +23,25 @@ fun <E> randomChoice(list: List<E>): E {
 /**
  * @author yawkat
  */
-@Singleton
-class CatDb @Inject constructor(val httpClient: HttpClient, val objectMapper: ObjectMapper) {
-    fun getImage(vararg tags: String): Image = randomChoice(getImages(*tags))
+@ImplementedBy(CatDbImpl::class)
+interface CatDb {
+    fun getImage(vararg tags: String): CatDb.Image
 
-    fun getImages(vararg tags: String): List<Image> {
+    fun getImages(vararg tags: String): List<CatDb.Image>
+
+    data class Image(val id: Int, val url: String, val tags: List<String>)
+}
+
+@Singleton
+class CatDbImpl @Inject constructor(val httpClient: HttpClient, val objectMapper: ObjectMapper) : CatDb {
+    override fun getImage(vararg tags: String): CatDb.Image = randomChoice(getImages(*tags))
+
+    override fun getImages(vararg tags: String): List<CatDb.Image> {
         var uri = "https://catdb.yawk.at/images?"
         for (tag in tags) {
             uri += "&tag=${URLEncoder.encode(tag, "UTF-8")}"
         }
         val response = httpClient.execute(HttpGet(uri))
-        return response.entity.content.use { objectMapper.readValue<List<Image>>(it) }
+        return response.entity.content.use { objectMapper.readValue<List<CatDb.Image>>(it) }
     }
-
-    data class Image(val id: Int, val url: String, val tags: List<String>)
 }

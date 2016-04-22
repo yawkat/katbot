@@ -99,7 +99,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Interact>().start()
     injector.getInstance<Ignore>().start()
     injector.getInstance<UrbanDictionary>().start()
-    injector.getInstance<RoleManager>().start()
+    injector.getInstance<RoleManagerImpl>().start()
     injector.getInstance<Fortune>().start()
     injector.getInstance<Seen>().start()
     injector.getInstance<Cip>().start()

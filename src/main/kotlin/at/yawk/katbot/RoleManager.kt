@@ -6,6 +6,7 @@
 
 package at.yawk.katbot
 
+import com.google.inject.ImplementedBy
 import org.kitteh.irc.client.library.element.User
 import java.sql.SQLException
 import java.util.*
@@ -15,12 +16,17 @@ import javax.sql.DataSource
 /**
  * @author yawkat
  */
-class RoleManager @Inject constructor(val eventBus: EventBus, val dataSource: DataSource) {
+@ImplementedBy(RoleManagerImpl::class)
+interface RoleManager {
+    fun hasRole(user: User, role: Role): Boolean
+}
+
+class RoleManagerImpl @Inject constructor(val eventBus: EventBus, val dataSource: DataSource) : RoleManager {
     fun start() {
         eventBus.subscribe(this)
     }
 
-    fun hasRole(user: User, role: Role): Boolean {
+    override fun hasRole(user: User, role: Role): Boolean {
         return dataSource.connection.closed {
             val roleNames = (role.impliedBy + role).map { it.name }
             val statement = it.prepareStatement("select count(*) from roles where username=? and host=? and array_contains(?, role)")

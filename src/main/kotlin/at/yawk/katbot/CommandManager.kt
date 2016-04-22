@@ -17,8 +17,20 @@ import javax.inject.Singleton
 /**
  * @author yawkat
  */
+interface CommandBus {
+    fun parseAndFire(
+            actor: User,
+            location: MessageReceiver,
+            message: String,
+            public: Boolean,
+            parseWithoutPrefix: Boolean,
+            userLocator: UserLocator,
+            cause: Cause?
+    ): Boolean
+}
+
 @Singleton
-class CommandManager @Inject constructor(val eventBus: EventBus) {
+class CommandManager @Inject constructor(val eventBus: EventBus) : CommandBus {
     companion object {
         private inline fun indexOf(s: CharSequence, startIndex: Int, predicate: (Char) -> Boolean): Int? {
             for (i in startIndex..s.length - 1) {
@@ -70,7 +82,7 @@ class CommandManager @Inject constructor(val eventBus: EventBus) {
         }
     }
 
-    fun parseAndFire(
+    override fun parseAndFire(
             actor: User,
             location: MessageReceiver,
             message: String,

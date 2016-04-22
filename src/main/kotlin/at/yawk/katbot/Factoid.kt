@@ -6,7 +6,9 @@
 
 package at.yawk.katbot
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Ascii
+import java.math.BigDecimal
 import java.util.*
 import javax.inject.Inject
 import javax.sql.DataSource
@@ -21,7 +23,7 @@ class Factoid @Inject constructor(
         val catDb: CatDb,
         val dataSource: DataSource,
         val roleManager: RoleManager,
-        val commandManager: CommandManager
+        val commandBus: CommandBus
 ) {
     companion object {
         private val canonicalChars = BitSet()
@@ -181,7 +183,7 @@ class Factoid @Inject constructor(
     private fun handleFactoid(event: Command, factoid: Entry, match: Template) {
         val finalTemplate = finalizeTemplate(event, factoid, match)
 
-        if (!commandManager.parseAndFire(
+        if (!commandBus.parseAndFire(
                 event.actor,
                 event.channel,
                 finalTemplate.finish(),
@@ -213,6 +215,20 @@ class Factoid @Inject constructor(
     }
 
     private fun evaluateFactoidSubExpression(parent: Command, subExpression: CommandLine, depth: Int): List<String>? {
+        evaluateFactoidSubExpression(subExpression)?.apply { return this }
+
+        if (subExpression.startsWith("eval")) {
+            val match = findFactoid(subExpression.parameterRange(1))
+            if (match != null) {
+                return listOf(finalizeTemplate(parent, match.first, match.second, depth + 1).finish())
+            }
+        }
+
+        return null
+    }
+
+    @VisibleForTesting
+    internal fun evaluateFactoidSubExpression(subExpression: CommandLine): List<String>? {
         if (subExpression.startsWith("upper")) return subExpression.parameterRange(1).map { it.toUpperCase() }
         if (subExpression.startsWith("lower")) return subExpression.parameterRange(1).map { it.toLowerCase() }
         if (subExpression.startsWith("escape")) return subExpression.parameterRange(1).map { CommandLine.escape(it) }
@@ -233,15 +249,21 @@ class Factoid @Inject constructor(
             }
             return listOf("")
         }
-        if (subExpression.startsWith("equals")) {
+        if (subExpression.startsWith("equal")) {
             // check for only one unique value
             return listOf((subExpression.parameterRange(1).toSet().size <= 1).toString())
         }
-        if (subExpression.startsWith("eval")) {
-            val match = findFactoid(subExpression.parameterRange(1))
-            if (match != null) {
-                return listOf(finalizeTemplate(parent, match.first, match.second, depth + 1).finish())
+        // sum the parameters or yield NaN if a non-number is passed.
+        if (subExpression.startsWith("sum")) {
+            var sum = BigDecimal.ZERO
+            for (component in subExpression.parameterRange(1)) {
+                try {
+                    sum += BigDecimal(component)
+                } catch(e: NumberFormatException) {
+                    return listOf("NaN")
+                }
             }
+            return listOf(sum.stripTrailingZeros().toPlainString())
         }
 
         return null
