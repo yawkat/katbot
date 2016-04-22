@@ -44,7 +44,7 @@ class Cip @Inject constructor(
 
     @Subscribe
     fun command(command: Command) {
-        if (command.message == "cip") {
+        if (command.line.messageIs("cip")) {
 
             val nick = (command.target ?: command.actor).nick
 

@@ -66,7 +66,7 @@ class DockerCommand @Inject constructor(
             command.channel.sendMessage("REPL unavailable.")
             return
         }
-        repl(command.message).thenAccept {
+        repl(command.line.message).thenAccept {
             val output = String(it
                     .map { if (it == '\t') ' ' else it }
                     .filter { isPrintableAsciiChar(it) || it == '\n' }

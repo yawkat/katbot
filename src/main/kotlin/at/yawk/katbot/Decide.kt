@@ -6,38 +6,7 @@
 
 package at.yawk.katbot
 
-import java.util.*
-import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
-
-internal fun parseParameters(message: String): ArrayList<String> {
-    val possibilities = arrayListOf<String>()
-    val possibilityBuilder = StringBuilder()
-    var quoted = false
-    var escaped = false
-    for (c in message) {
-        if (!escaped) {
-            if (c == '"') {
-                quoted = !quoted
-                continue
-            } else if (c == '\\') {
-                escaped = true
-                continue
-            } else if (c == ' ' && !quoted) {
-                if (possibilityBuilder.length > 0) {
-                    possibilities.add(possibilityBuilder.toString())
-                    possibilityBuilder.setLength(0)
-                }
-                continue
-            }
-        }
-        possibilityBuilder.append(c)
-    }
-    if (possibilityBuilder.length > 0) {
-        possibilities.add(possibilityBuilder.toString())
-    }
-    return possibilities
-}
 
 /**
  * @author yawkat
@@ -49,11 +18,10 @@ class Decide @Inject constructor(val eventBus: EventBus) {
 
     @Subscribe
     fun command(event: Command) {
-        val message = event.message
-        if (!message.startsWith("decide")) return
-        val possibilities = parseParameters(message.substring("decide".length))
+        if (!event.line.startsWith("decide")) return
+        val possibilities = event.line.parameterRange(1)
         val answer = when (possibilities.size) {
-            0, 1 -> if (ThreadLocalRandom.current().nextBoolean()) "yes" else "no"
+            0, 1 -> randomChoice(listOf("yes", "no"))
             else -> randomChoice(possibilities)
         }
 

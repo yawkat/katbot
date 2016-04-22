@@ -9,11 +9,6 @@ import org.testng.annotations.Test
 class FactoidTest {
     @Test
     fun testCanonical() {
-        assertEquals(Factoid.startsWithCanonical("a'b'c", "a''"), 2)
-        assertEquals(Factoid.startsWithCanonical("a'b'c", "a'"), 2)
-        assertEquals(Factoid.startsWithCanonical("a'b'c", "a"), 2)
-        assertEquals(Factoid.startsWithCanonical("a'b'c", ""), 0)
-        assertNull(Factoid.startsWithCanonical("a'b'c", "x"))
         assertTrue(Factoid.equalsCanonical("a'b'c", "abc"))
         assertTrue(Factoid.equalsCanonical("a'b'c", "'a'b'''''''c''"))
         assertFalse(Factoid.equalsCanonical("a'b'c", "'a'bd'''''''c''"))
@@ -22,10 +17,10 @@ class FactoidTest {
     @Test
     fun testEntry() {
         fun findMatch(command: String, vararg entries: Entry): Template? {
-            entries.sortWith(FACTOID_COMPARATOR)
+            val parameters = CommandLine(command).parameters
             for (pass in PASSES) {
                 for (entry in entries) {
-                    val match = entry.match(command, pass)
+                    val match = entry.match(parameters, pass)
                     if (match != null) return match
                 }
             }
@@ -40,8 +35,8 @@ class FactoidTest {
         assertNotNull(findMatch("a '", Entry("a $", "")))
         assertNotNull(findMatch("a b", Entry("a $", "")))
 
-        assertEquals(findMatch("a b #", Entry("a b $", "1"), Entry("a $", "2"), Entry("a b ", "3")), Template("1"))
-        assertEquals(findMatch("a b #", Entry("a $", "2"), Entry("a b ", "3")), Template("2"))
-        assertEquals(findMatch("a b #", Entry("a b ", "3")), Template("3"))
+        assertEquals(findMatch("a b #", Entry("a b $", "1"), Entry("a $", "2"), Entry("a b ", "3"))?.finish(), "1")
+        assertEquals(findMatch("a b #", Entry("a $", "2"), Entry("a b ", "3"))?.finish(), "2")
+        assertEquals(findMatch("a b ", Entry("a b ", "3"))?.finish(), "3")
     }
 }

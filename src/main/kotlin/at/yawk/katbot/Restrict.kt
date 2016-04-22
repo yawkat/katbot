@@ -21,11 +21,11 @@ class Restrict @Inject constructor(val roleManager: RoleManager, val eventBus: E
 
     @Subscribe
     fun command(command: Command) {
-        val newRestrict = when (command.message) {
-            "restrict" -> true
-            "unrestrict" -> false
-            else -> return
-        }
+        val newRestrict = if (command.line.messageIs("restrict")) {
+            true
+        } else if (command.line.messageIs("unrestrict")) {
+            false
+        } else return
 
         if (!roleManager.hasRole(command.actor, Role.ADMIN)) {
             command.channel.sendMessage("You aren't allowed to do that.")

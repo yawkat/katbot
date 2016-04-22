@@ -7,63 +7,99 @@
 package at.yawk.katbot
 
 import org.kitteh.irc.client.library.element.MessageReceiver
-import java.util.regex.Pattern
+import java.util.*
 
 private const val MAX_MESSAGE_LENGTH = 450
+private val DEFAULT_PARAMETERS = mapOf<String, () -> String>(Pair("$", { "$" }))
+
+private fun truncate(string: String) =
+        if (string.length > MAX_MESSAGE_LENGTH) string.substring(0, MAX_MESSAGE_LENGTH) else string
+
+// ${name}
+private fun toTemplateExpression(name: String) = "\${$name}"
 
 /**
  * @author yawkat
  */
-class Template(data: String) {
-    private val data =
-            if (data.length > MAX_MESSAGE_LENGTH)
-                data.substring(0, MAX_MESSAGE_LENGTH)
-            else data
+class Template(
+        data: String,
+        val simpleParameters: Map<String, () -> String> = DEFAULT_PARAMETERS,
+        val missingFunction: (CommandLine) -> CommandLine? = { null }
+) {
+    private val data = truncate(data)
 
-    private fun toTemplateExpression(name: String): String {
-        // ${name}
-        return "${'$'}{$name}"
-    }
+    fun set(name: String, value: String) = set(name) { value }
+    fun set(name: String, value: () -> String) = Template(data, simpleParameters + Pair(name, value), missingFunction)
 
-    fun set(name: String, value: String): Template {
-        return Template(data.replace(toTemplateExpression(name), value))
-    }
+    fun withMissingFunction(missingFunction: (CommandLine) -> CommandLine?) = Template(data, simpleParameters, missingFunction)
 
-    fun set(name: String, value: () -> String): Template {
-        if (data.contains(toTemplateExpression(name)) ) {
-            return set(name, value.invoke())
+    private fun evaluateSubExpression(start: Int, outermost: Boolean): Pair<List<String>, Int> {
+        val currentValue = StringBuilder()
+        val items = ArrayList<String>()
+
+        var escaped = false
+        var quoted = false
+        var i = start
+        while (i < data.length) {
+            val c = data[i++]
+            if (!escaped) {
+                if (c == '\\') {
+                    escaped = true
+                    continue
+                } else if (c == '$' && i < data.length - 1 && data[i] == '{') {
+                    val (subValue, subEnd) = evaluateSubExpression(i + 1, false)
+                    for ((j, value) in subValue.withIndex()) {
+                        if (j > 0) {
+                            items.add(currentValue.toString())
+                            currentValue.setLength(0)
+                        }
+                        currentValue.append(value)
+                    }
+                    i = subEnd
+                    continue
+                } else if (!outermost && c == '}') {
+                    break
+                } else if (c == '"') {
+                    quoted = !quoted
+                    continue
+                } else if (c == ' ') {
+                    items.add(currentValue.toString())
+                    currentValue.setLength(0)
+                    continue
+                }
+            } else {
+                escaped = false
+                continue
+            }
+            currentValue.append(c)
+        }
+        items.add(currentValue.toString())
+        if (outermost) {
+            return Pair(items, i)
         } else {
-            return this
+            val joined = items.joinToString(" ")
+            val matchingParameter = simpleParameters[joined]
+            if (matchingParameter != null) return Pair(listOf(matchingParameter()), i)
+            val evaluatedFunction = missingFunction(CommandLine(items))
+            if (evaluatedFunction != null) return Pair(evaluatedFunction.parameters, i)
+            return Pair(listOf(toTemplateExpression(joined)), i)
         }
     }
 
-    fun setWithParameter(name: String, value: (String) -> String): Template {
-        val quoted = Pattern.quote(name)
-        val regex = "\\$\\{$quoted:([^}]*)\\}".toPattern()
-
-        var r = this
-        while (true) {
-            val matcher = regex.matcher(r.data)
-            if (!matcher.find()) return r
-            // todo: prevent infinite loop
-            val arg = matcher.group(1)
-            val sub = value.invoke(arg)
-            r = Template(r.data.substring(0, matcher.start()) + sub + r.data.substring(matcher.end()))
-        }
-    }
-
-    fun finish(): String = data
+    fun finish() = evaluateSubExpression(0, true).first.joinToString(" ")
 
     fun sendTo(vararg messageReceiver: MessageReceiver) {
         sendTo(messageReceiver.asList())
     }
 
     fun sendTo(messageReceivers: List<MessageReceiver>) {
-        val msg = finish()
+        var msg = finish()
         if (msg.startsWith("/me ")) {
             val ctcp = "ACTION ${msg.substring(4)}"
             messageReceivers.forEach { it.sendCTCPMessage(ctcp) }
         } else {
+            // escape /me and ~ prefix with /send
+            if (msg.startsWith("/send ")) msg = msg.substring("/send ".length)
             messageReceivers.forEach { it.sendMessage(msg) }
         }
     }
@@ -76,9 +112,4 @@ class Template(data: String) {
     fun sendAsReply(command: Command) {
         setActorAndTarget(command).sendTo(command.channel)
     }
-
-    override fun toString(): String = data
-
-    override fun equals(other: Any?) = other is Template && other.data == this.data
-    override fun hashCode() = data.hashCode() + 1
 }

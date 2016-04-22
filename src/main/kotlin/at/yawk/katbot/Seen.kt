@@ -30,9 +30,9 @@ class Seen @Inject constructor(val eventBus: EventBus, val dataSource: DataSourc
 
     @Subscribe
     fun command(command: Command) {
-        val matcher = PATTERN.matcher(command.message)
-        if (matcher.matches()) {
-            val nick = matcher.group(1)
+        if (command.line.startsWith("seen") && command.line.parameters.size == 2) {
+            val nick = command.line.parameters[1]
+            if (!nick.matches(NICK_PATTERN.toRegex())) return
             val seen = dataSource.connection.closed {
                 val statement = it.prepareStatement("select seen from seen where nick=?")
                 statement.setString(1, nick)

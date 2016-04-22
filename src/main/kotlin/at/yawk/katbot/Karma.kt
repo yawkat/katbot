@@ -67,7 +67,7 @@ class Karma @Inject constructor(
 
     @Subscribe
     fun command(event: Command) {
-        val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.message)
+        val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.line.message)
         if (manipulateMatcher.matches()) {
             val subject = manipulateMatcher.group(1).trim { it <= ' ' }
             if (!subject.isEmpty()) {
@@ -106,7 +106,7 @@ class Karma @Inject constructor(
                 throw CancelEvent
             }
         } else {
-            val viewMatcher = VIEW_PATTERN.matcher(event.message)
+            val viewMatcher = VIEW_PATTERN.matcher(event.line.message)
             if (viewMatcher.matches()) {
                 val primes = viewMatcher.group(1) == "p"
                 val subject = viewMatcher.group(2).trim { it <= ' ' }

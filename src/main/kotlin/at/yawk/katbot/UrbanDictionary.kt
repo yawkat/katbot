@@ -28,7 +28,7 @@ class UrbanDictionary @Inject constructor(val eventBus: EventBus, val urlShorten
 
     @Subscribe
     fun command(event: Command) {
-        val match = PATTERN.matcher(event.message)
+        val match = PATTERN.matcher(event.line.message)
         if (match.matches()) {
             val term = match.group(1)
             val url = "http://www.urbandictionary.com/define.php?term=" + URLEncoder.encode(term, "UTF-8")

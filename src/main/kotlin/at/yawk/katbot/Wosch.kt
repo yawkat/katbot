@@ -21,11 +21,11 @@ class Wosch @Inject constructor(val eventBus: EventBus) {
 
     @Subscribe
     fun command(command: Command) {
-        if (command.message.startsWith(MAGIC_WORD)) {
-            if (command.message.length <= MAGIC_WORD.length) {
+        if (command.line.message.startsWith(MAGIC_WORD)) {
+            if (command.line.message.length <= MAGIC_WORD.length) {
                 command.channel.sendMessage("Usage: $MAGIC_WORD <message>")
             } else {
-                val toWosch = command.message.substring(MAGIC_WORD.length + 1)
+                val toWosch = command.line.message.substring(MAGIC_WORD.length + 1)
                 command.channel.sendMessage(woschinize(toWosch))
             }
 

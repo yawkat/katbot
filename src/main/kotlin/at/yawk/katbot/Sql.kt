@@ -30,7 +30,7 @@ class Sql @Inject constructor(
 
     @Subscribe
     fun command(command: Command) {
-        if (command.message.startsWith("sql ")) {
+        if (command.line.message.startsWith("sql ")) {
             if (!roleManager.hasRole(command.actor, Role.ADMIN)) {
                 command.channel.sendMessage("You are not allowed to do that.")
                 throw CancelEvent
@@ -39,7 +39,7 @@ class Sql @Inject constructor(
             try {
                 dataSource.connection.closed {
                     val statement = it.createStatement()
-                    val query = statement.executeQuery(command.message.substring("sql ".length))
+                    val query = statement.executeQuery(command.line.message.substring("sql ".length))
 
                     while (query.next()) {
                         var row = "| "
@@ -51,8 +51,7 @@ class Sql @Inject constructor(
                     }
                 }
             } catch (e: SQLException) {
-                command.channel.sendMessage(e.toString())
-                throw CancelEvent
+                results.addAll(e.toString().split('\n'))
             }
             if (results.isEmpty()) {
                 command.channel.sendMessage("No results.")

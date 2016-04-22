@@ -93,14 +93,14 @@ class CommandManager @Inject constructor(val eventBus: EventBus) {
                 }
 
                 val commandStart = findNonWhitespace(message, targetEnd) ?: return true
-                val command = message.substring(commandStart)
+                val line = CommandLine(message.substring(commandStart))
 
-                submit(Command(location, userLocator, actor, target, command, public, cause))
+                submit(Command(location, userLocator, actor, target, line, public, cause))
             } else {
                 val commandStart = findNonWhitespace(message, 1) ?: return true
-                val command = message.substring(commandStart)
+                val line = CommandLine(message.substring(commandStart))
 
-                submit(Command(location, userLocator, actor, null, command, public, cause))
+                submit(Command(location, userLocator, actor, null, line, public, cause))
             }
             return true
         }
@@ -108,14 +108,14 @@ class CommandManager @Inject constructor(val eventBus: EventBus) {
         val ourNick = location.client.nick
         if (message.startsWith("$ourNick,") || message.startsWith("$ourNick:")) {
             val commandStart = findNonWhitespace(message, ourNick.length + 1) ?: return true
-            val command = message.substring(commandStart)
+            val line = CommandLine(message.substring(commandStart))
 
-            submit(Command(location, userLocator, actor, null, command, public, cause))
+            submit(Command(location, userLocator, actor, null, line, public, cause))
             return true
         }
 
         if (parseWithoutPrefix) {
-            submit(Command(location, userLocator, actor, null, message.trimStart(), public, cause))
+            submit(Command(location, userLocator, actor, null, CommandLine(message), public, cause))
             return true
         }
         return false
@@ -138,8 +138,7 @@ data class Command(
         val actor: User,
         /** user input - do not trust */
         val target: User?,
-        /** user input - do not trust */
-        val message: String,
+        val line: CommandLine,
         val public: Boolean,
         val cause: Cause?
 ) {

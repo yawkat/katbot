@@ -23,7 +23,7 @@ class Uptime @Inject constructor(val eventBus: EventBus) {
 
     @Subscribe
     fun command(event: Command) {
-        if (event.message.trimEnd() != "uptime") return
+        if (!event.line.messageIs("uptime")) return
 
         val start = startTime
         if (start != null) {

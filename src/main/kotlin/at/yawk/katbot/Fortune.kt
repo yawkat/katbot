@@ -29,8 +29,8 @@ class Fortune @Inject constructor(val eventBus: EventBus) {
 
     @Subscribe
     fun command(command: Command) {
-        if (command.message.startsWith("fortune", ignoreCase = true)) {
-            val args = command.message.substring(7).split(" ").filter { it.isNotBlank() }
+        if (command.line.startsWith("fortune")) {
+            val args = command.line.parameterRange(1)
             command.channel.sendMessage(getFortune(
                     offensive = args.contains("-o")
             ))

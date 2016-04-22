@@ -60,7 +60,7 @@ class EventManager @Inject constructor(
 
     @Subscribe
     fun command(command: Command) {
-        if (command.message.equals("updateEvents", ignoreCase = true)) {
+        if (command.line.messageIs("updateEvents")) {
             updateEvents()
             command.channel.sendMessage("Update complete")
             throw CancelEvent
