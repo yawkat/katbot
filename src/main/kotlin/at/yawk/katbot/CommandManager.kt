@@ -6,6 +6,7 @@
 
 package at.yawk.katbot
 
+import com.google.inject.ImplementedBy
 import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.element.MessageReceiver
 import org.kitteh.irc.client.library.element.User
@@ -17,6 +18,7 @@ import javax.inject.Singleton
 /**
  * @author yawkat
  */
+@ImplementedBy(CommandManager::class)
 interface CommandBus {
     fun parseAndFire(
             actor: User,
