@@ -72,6 +72,7 @@ class Template(
                 continue
             }
             currentValue.append(c)
+            if (currentValue.length >= MAX_MESSAGE_LENGTH) break
         }
         items.add(currentValue.toString())
         if (outermost) {

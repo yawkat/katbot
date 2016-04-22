@@ -179,7 +179,7 @@ class Factoid @Inject constructor(
     }
 
     private fun handleFactoid(event: Command, factoid: Entry, match: Template) {
-        val finalTemplate = finalizeTemplate(event, emptyList(), factoid, match)
+        val finalTemplate = finalizeTemplate(event, factoid, match)
 
         if (!commandManager.parseAndFire(
                 event.actor,
@@ -195,9 +195,9 @@ class Factoid @Inject constructor(
         throw CancelEvent
     }
 
-    private fun finalizeTemplate(event: Command, additionalCauses: List<Entry>, factoid: Entry, match: Template): Template {
+    private fun finalizeTemplate(event: Command, factoid: Entry, match: Template, depth: Int = 0): Template {
         // detect infinite loop
-        if (event.hasCause { it.meta == factoid } || additionalCauses.contains(factoid)) {
+        if (event.hasCause { it.meta == factoid } || depth >= 16) {
             event.channel.sendMessage("Infinite loop in factoid ${factoid.name}")
             throw CancelEvent
         }
@@ -206,13 +206,13 @@ class Factoid @Inject constructor(
                 .set("sender", event.actor.nick)
                 .setActorAndTarget(event)
                 .withMissingFunction {
-                    val list = evaluateFactoidSubExpression(event, additionalCauses + factoid, it)
+                    val list = evaluateFactoidSubExpression(event, it, depth)
                     if (list == null) null else CommandLine(list)
                 }
         return finalTemplate
     }
 
-    private fun evaluateFactoidSubExpression(parent: Command, additionalCauses: List<Entry>, subExpression: CommandLine): List<String>? {
+    private fun evaluateFactoidSubExpression(parent: Command, subExpression: CommandLine, depth: Int): List<String>? {
         if (subExpression.startsWith("upper")) return subExpression.parameterRange(1).map { it.toUpperCase() }
         if (subExpression.startsWith("lower")) return subExpression.parameterRange(1).map { it.toLowerCase() }
         if (subExpression.startsWith("escape")) return subExpression.parameterRange(1).map { CommandLine.escape(it) }
@@ -240,7 +240,7 @@ class Factoid @Inject constructor(
         if (subExpression.startsWith("eval")) {
             val match = findFactoid(subExpression.parameterRange(1))
             if (match != null) {
-                return listOf(finalizeTemplate(parent, additionalCauses, match.first, match.second).finish())
+                return listOf(finalizeTemplate(parent, match.first, match.second, depth + 1).finish())
             }
         }
 
