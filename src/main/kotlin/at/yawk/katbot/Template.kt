@@ -62,7 +62,7 @@ class Template(
                 } else if (c == '"') {
                     quoted = !quoted
                     continue
-                } else if (c == ' ') {
+                } else if (c == ' ' && !quoted) {
                     items.add(currentValue.toString())
                     currentValue.setLength(0)
                     continue
