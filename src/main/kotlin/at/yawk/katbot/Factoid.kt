@@ -181,7 +181,12 @@ class Factoid @Inject constructor(
     }
 
     private fun handleFactoid(event: Command, factoid: Entry, match: Template) {
-        val finalTemplate = finalizeTemplate(event, factoid, match)
+        // detect infinite loop
+        if (event.hasCause { it.meta == factoid }) {
+            event.channel.sendMessage("Infinite loop in factoid ${factoid.name}")
+            throw CancelEvent
+        }
+        val finalTemplate = finalizeTemplate(event, match)
 
         if (!commandBus.parseAndFire(
                 event.actor,
@@ -197,13 +202,7 @@ class Factoid @Inject constructor(
         throw CancelEvent
     }
 
-    private fun finalizeTemplate(event: Command, factoid: Entry, match: Template, depth: Int = 0): Template {
-        // detect infinite loop
-        if (event.hasCause { it.meta == factoid } || depth >= 16) {
-            event.channel.sendMessage("Infinite loop in factoid ${factoid.name}")
-            throw CancelEvent
-        }
-
+    private fun finalizeTemplate(event: Command, match: Template, depth: Int = 0): Template {
         val finalTemplate = match
                 .set("sender", event.actor.nick)
                 .setActorAndTarget(event)
@@ -218,9 +217,12 @@ class Factoid @Inject constructor(
         evaluateFactoidSubExpression(subExpression)?.apply { return this }
 
         if (subExpression.startsWith("eval")) {
+            if (depth >= 25) {
+                return listOf("STACK OVERFLOW")
+            }
             val match = findFactoid(subExpression.parameterRange(1))
             if (match != null) {
-                return listOf(finalizeTemplate(parent, match.first, match.second, depth + 1).finish())
+                return listOf(finalizeTemplate(parent, match.second, depth + 1).finish())
             }
         }
 
