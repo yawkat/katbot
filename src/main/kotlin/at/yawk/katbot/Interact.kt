@@ -19,18 +19,19 @@ class Interact @Inject constructor(val eventBus: EventBus, val config: Config) {
 
     @Subscribe
     fun command(event: Command) {
-        if (event.line.parameters.size != 2) return
-        val interactions = config.interactions[event.line.parameters[0].toLowerCase()] ?: return
+        val parameters = event.line.parameters
+        if (parameters.size > 2 || parameters.size < 1) return
+        val interactions = config.interactions[parameters[0].toLowerCase()] ?: return
 
-        var target = event.line.parameters[1]
-        if (!target.matches(SUBJECT_PATTERN.toRegex()) || target.isEmpty()) return
+        var target = parameters.getOrNull(1)
+        if (target != null && (target.isEmpty() || !target.matches(SUBJECT_PATTERN.toRegex()))) return
 
-        if (target == event.channel.client.nick) {
+        if (target == null || target == event.channel.client.nick) {
             target = event.actor.nick
         }
         Template(randomChoice(interactions))
-                .set("target", target)
-                .sendAsReply(event)
+                .setActorAndTarget(event.actor, target)
+                .sendTo(event.channel)
         throw CancelEvent
     }
 }

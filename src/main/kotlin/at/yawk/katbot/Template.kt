@@ -7,6 +7,7 @@
 package at.yawk.katbot
 
 import org.kitteh.irc.client.library.element.MessageReceiver
+import org.kitteh.irc.client.library.element.User
 import java.util.*
 
 private const val MAX_MESSAGE_LENGTH = 450
@@ -106,8 +107,12 @@ class Template(
     }
 
     fun setActorAndTarget(command: Command): Template {
-        return set("actor", command.actor.nick)
-                .set("target", (command.target ?: command.actor).nick)
+        return setActorAndTarget(command.actor, (command.target ?: command.actor).nick)
+    }
+
+    fun setActorAndTarget(actor: User, target: String): Template {
+        return set("actor", actor.nick)
+                .set("target", target)
     }
 
     fun sendAsReply(command: Command) {
