@@ -17,9 +17,8 @@ class ParserTest {
     fun `simple`() {
         assertEquals(
                 Parser.parse("abc def"),
-                listOf(Component.Literal("abc"),
-                        Component.Separator,
-                        Component.Literal("def"))
+                listOf(Expression.Literal("abc"),
+                        Expression.Literal("def"))
         )
     }
 
@@ -27,11 +26,12 @@ class ParserTest {
     fun `simple nested`() {
         assertEquals(
                 Parser.parse("abc de\${uio asd}f"),
-                listOf(Component.Literal("abc"),
-                        Component.Separator,
-                        Component.Literal("de"),
-                        Component.SimpleExpression(listOf(Component.Literal("uio"), Component.Separator, Component.Literal("asd"))),
-                        Component.Literal("f"))
+                listOf(Expression.Literal("abc"),
+                        Expression.ConcatNeighbours(listOf(
+                                Expression.Literal("de"),
+                                Expression.SimpleInvocation(listOf(Expression.Literal("uio"),  Expression.Literal("asd"))),
+                                Expression.Literal("f")
+                        )))
         )
     }
 
@@ -39,10 +39,11 @@ class ParserTest {
     fun `unclosed nested`() {
         assertEquals(
                 Parser.parse("abc de\${uio asdf"),
-                listOf(Component.Literal("abc"),
-                        Component.Separator,
-                        Component.Literal("de"),
-                        Component.SimpleExpression(listOf(Component.Literal("uio"), Component.Separator, Component.Literal("asdf"))))
+                listOf(Expression.Literal("abc"),
+                        Expression.ConcatNeighbours(listOf(
+                                Expression.Literal("de"),
+                                Expression.SimpleInvocation(listOf(Expression.Literal("uio"), Expression.Literal("asdf")))
+                        )))
         )
     }
 
@@ -50,11 +51,12 @@ class ParserTest {
     fun `exploded nested`() {
         assertEquals(
                 Parser.parse("abc de*\${uio asd}f"),
-                listOf(Component.Literal("abc"),
-                        Component.Separator,
-                        Component.Literal("de"),
-                        Component.ExplodedExpression(listOf(Component.Literal("uio"), Component.Separator, Component.Literal("asd"))),
-                        Component.Literal("f"))
+                listOf(Expression.Literal("abc"),
+                        Expression.ConcatNeighbours(listOf(
+                                Expression.Literal("de"),
+                                Expression.ExplodedInvocation(listOf(Expression.Literal("uio"),  Expression.Literal("asd"))),
+                                Expression.Literal("f")
+                        )))
         )
     }
 
@@ -62,7 +64,7 @@ class ParserTest {
     fun `escape simple`() {
         assertEquals(
                 Parser.parse("\\\${abc}"),
-                listOf(Component.Literal("\${abc}"))
+                listOf(Expression.Literal("\${abc}"))
         )
     }
 
@@ -70,7 +72,7 @@ class ParserTest {
     fun `escape exploded`() {
         assertEquals(
                 Parser.parse("*\\\${abc}"),
-                listOf(Component.Literal("*\${abc}"))
+                listOf(Expression.Literal("*\${abc}"))
         )
     }
 
@@ -78,9 +80,8 @@ class ParserTest {
     fun `quoting`() {
         assertEquals(
                 Parser.parse("ab\"c de\"f ghi"),
-                listOf(Component.Literal("abc def"),
-                        Component.Separator,
-                        Component.Literal("ghi"))
+                listOf(Expression.Literal("abc def"),
+                        Expression.Literal("ghi"))
         )
     }
 }

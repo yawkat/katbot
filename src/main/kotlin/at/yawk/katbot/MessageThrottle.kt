@@ -13,7 +13,7 @@ import java.util.*
 private const val BACKLOG_SIZE = 32
 
 private const val THRESHOLD_SAME = 60 // 60 seconds per same message
-private const val THRESHOLD_DIFFERENT = 7 // 7 seconds per same message
+private const val THRESHOLD_DIFFERENT = 7 // 7 seconds per different message
 
 /**
  * @author yawkat

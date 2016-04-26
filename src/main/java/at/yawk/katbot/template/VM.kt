@@ -11,4 +11,9 @@ package at.yawk.katbot.template
  */
 interface VM {
     fun invoke(parameters: List<Expression>): List<String>
+
+    /**
+     * Return a copy of this VM with the given additional high-priority functions.
+     */
+    fun plusFunctions(functions: List<Function>): VM
 }

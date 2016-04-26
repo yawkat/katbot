@@ -12,59 +12,54 @@ import java.util.*
  * @author yawkat
  */
 sealed class Expression {
-    companion object {
-        fun fromParserComponents(components: List<Component>): List<Expression> {
-            val expressions = ArrayList<Expression>()
-            var unseparated = emptyList<Expression>()
-            fun flushExpression() {
-                expressions.add(when (unseparated.size) {
-                    0 -> ConstantExpression("")
-                    1 -> unseparated[0]
-                    else -> ConcatNeighboursExpression(unseparated)
-                })
-                unseparated = emptyList<Expression>()
-            }
-
-            for (component in components) {
-                when (component) {
-                    is Component.Separator -> flushExpression()
-                    is Component.Literal ->
-                        unseparated += ConstantExpression(component.value)
-                    is Component.SimpleExpression ->
-                        unseparated += SimpleInvocationExpression(fromParserComponents(component.components))
-                    is Component.ExplodedExpression ->
-                        unseparated += ExplodedInvocationExpression(fromParserComponents(component.components))
-                }
-            }
-            return expressions
-        }
-    }
-
     /**
      * Size of the return value of [computeValue], if known.
      */
-    open val size: Int? = null
+    open val size: Int?
+        get() = null
+    /**
+     * Minimum size of [computeValue], or `0` if unknown.
+     */
+    open val minSize: Int
+        get() = size ?: 0
+    /**
+     * Maximum size of [computeValue], or [Int.MAX_VALUE] if unknown.
+     */
+    open val maxSize: Int
+        get() = size ?: Int.MAX_VALUE
 
     abstract fun computeValue(vm: VM): List<String>
 
-    class ConstantExpression(val value: String) : Expression() {
+    class Literal(val value: String) : Expression() {
         override val size: Int? = 1
         override fun computeValue(vm: VM) = listOf(value)
+
+        override fun toString() = "ConstantExpression($value)"
+        override fun equals(other: Any?) = other is Literal && other.value == value
+        override fun hashCode() = value.hashCode() + 1
     }
 
-    class SimpleInvocationExpression(val parameters: List<Expression>) : Expression() {
+    class SimpleInvocation(val parameters: List<Expression>) : Expression() {
         override val size: Int? = 1
         override fun computeValue(vm: VM) = listOf(vm.invoke(parameters).joinToString(" "))
+
+        override fun toString() = "SimpleInvocationExpression($parameters)"
+        override fun equals(other: Any?) = other is SimpleInvocation && other.parameters == parameters
+        override fun hashCode() = parameters.hashCode() + 1
     }
 
-    class ExplodedInvocationExpression(val parameters: List<Expression>) : Expression() {
+    class ExplodedInvocation(val parameters: List<Expression>) : Expression() {
         override fun computeValue(vm: VM) = vm.invoke(parameters)
+
+        override fun toString() = "ExplodedInvocationExpression($parameters)"
+        override fun equals(other: Any?) = other is ExplodedInvocation && other.parameters == parameters
+        override fun hashCode() = parameters.hashCode() + 1
     }
 
     /**
      * `[abc, def] + [ghi] + [] + [jkl, mno] = [abc, defghijkl, mno]`
      */
-    class ConcatNeighboursExpression(val expressions: List<Expression>) : Expression() {
+    class ConcatNeighbours(val expressions: List<Expression>) : Expression() {
         override val size: Int? = computeSize()
 
         private fun computeSize(): Int? {
@@ -97,6 +92,10 @@ sealed class Expression {
             }
             return folded
         }
+
+        override fun toString() = "ConcatNeighboursExpression($expressions)"
+        override fun equals(other: Any?) = other is ConcatNeighbours && other.expressions == expressions
+        override fun hashCode() = expressions.hashCode() + 1
     }
 }
 

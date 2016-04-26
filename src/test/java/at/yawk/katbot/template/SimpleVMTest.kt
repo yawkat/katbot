@@ -6,7 +6,7 @@
 
 package at.yawk.katbot.template
 
-import org.testng.Assert.*
+import org.testng.Assert.assertEquals
 import org.testng.annotations.Test
 
 /**
@@ -14,17 +14,66 @@ import org.testng.annotations.Test
  */
 class SimpleVMTest {
     @Test
-    fun `integration test`() {
-        val vm = SimpleVM()
-        vm.addFunction(Functions.IfFunction)
+    fun `basic if expression result`() {
+        val vm = SimpleVM().withFunctions(Functions.If)
 
         assertEquals(
-                vm.invoke(Expression.fromParserComponents(Parser.parse("if true abc def"))),
+                vm.invoke(Parser.parse("if true abc def")),
                 listOf("abc")
         )
         assertEquals(
-                vm.invoke(Expression.fromParserComponents(Parser.parse("if false abc def ghi"))),
+                vm.invoke(Parser.parse("if false abc def ghi")),
                 listOf("def", "ghi")
         )
+    }
+
+    @Test
+    fun `lazy evaluation if true branch`() {
+        var vm = SimpleVM().withFunctions(Functions.If)
+
+        var callCountA = 0
+        var callCountB = 0
+        vm = vm.withFunctions(object : Function {
+            override fun evaluate(parameters: LazyExpressionList, mode: Function.EvaluationMode): List<String>? {
+                when (parameters.getOrNull(0)) {
+                    "a" -> callCountA++
+                    "b" -> callCountB++
+                    else -> return null
+                }
+                return listOf("abc", "def")
+            }
+        })
+
+        assertEquals(
+                vm.invoke(Parser.parse("if true \${a} \${b}")),
+                listOf("abc def")
+        )
+        assertEquals(callCountA, 1)
+        assertEquals(callCountB, 0)
+    }
+
+    @Test
+    fun `lazy evaluation if false branch`() {
+        var vm = SimpleVM().withFunctions(Functions.If)
+
+        var callCountA = 0
+        var callCountB = 0
+        vm = vm.withFunctions(object : Function {
+            override fun evaluate(parameters: LazyExpressionList, mode: Function.EvaluationMode): List<String>? {
+                when (parameters.getOrNull(0)) {
+                    "a" -> callCountA++
+                    "b" -> callCountB++
+                    else -> return null
+                }
+                return listOf("abc", "def")
+            }
+        })
+
+        assertEquals(
+                vm.invoke(Parser.parse("if false \${a} \${b}")),
+                listOf("abc def")
+        )
+        assertEquals(callCountA, 0)
+        assertEquals(callCountB, 1)
     }
 }

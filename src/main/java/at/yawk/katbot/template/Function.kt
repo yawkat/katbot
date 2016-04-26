@@ -10,5 +10,13 @@ package at.yawk.katbot.template
  * @author yawkat
  */
 interface Function {
-    fun evaluate(parameters: LazyExpressionList): List<String>?
+    /**
+     * @param mode Evaluation pass to try. This is used so more specific factoids take priority over varargs.
+     */
+    fun evaluate(parameters: LazyExpressionList, mode: EvaluationMode): List<String>?
+
+    enum class EvaluationMode {
+        NORMAL,
+        VARARGS,
+    }
 }

@@ -6,6 +6,9 @@
 
 package at.yawk.katbot
 
+import at.yawk.katbot.template.Canonical
+import at.yawk.katbot.template.FactoidFunction
+import at.yawk.katbot.template.SimpleVM
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Ascii
 import java.math.BigDecimal
@@ -25,48 +28,8 @@ class Factoid @Inject constructor(
         val roleManager: RoleManager,
         val commandBus: CommandBus
 ) {
-    companion object {
-        private val canonicalChars = BitSet()
-
-        init {
-            for (c in '\u0000'..'\uffff') {
-                if (c.isLetterOrDigit()) {
-                    canonicalChars.set(c.toInt())
-                }
-            }
-            canonicalChars.set(' '.toInt())
-        }
-
-        fun isCanonicalChar(char: Char) = canonicalChars.get(char.toInt())
-
-        fun equalsCanonical(a: String, b: String): Boolean {
-            var i = 0
-            var j = 0
-            while (true) {
-                if (i < a.length && !isCanonicalChar(a[i])) {
-                    i++
-                    continue
-                }
-                if (j < b.length && !isCanonicalChar(b[j])) {
-                    j++
-                    continue
-                }
-
-                if (i >= a.length || j >= b.length) {
-                    return i >= a.length && j >= b.length
-                }
-
-                if (Ascii.toLowerCase(a[i]) != Ascii.toLowerCase(b[j]) ||
-                        !a[i].equals(b[j], ignoreCase = true)) {
-                    return false // mismatch
-                }
-                i++
-                j++
-            }
-        }
-    }
-
     private val factoids = ArrayList<Entry>()
+    private var vm = SimpleVM()
 
     @Synchronized
     private fun removeFactoid(entry: Entry, removeFromCollection: Boolean) {
@@ -75,6 +38,7 @@ class Factoid @Inject constructor(
             statement.setString(1, entry.name)
             statement.execute()
         }
+        vm = vm.withoutFunction(entry.function)
         if (removeFromCollection) factoids.remove(entry)
     }
 
@@ -83,8 +47,7 @@ class Factoid @Inject constructor(
         val iterator = factoids.iterator()
         while (iterator.hasNext()) {
             val other = iterator.next()
-            if (other.components.size == entry.components.size &&
-                    equalsCanonical(other.name, entry.name)) {
+            if (other.function.nameEquals(entry.function)) {
                 removeFactoid(other, removeFromCollection = false)
                 iterator.remove()
             }
@@ -97,6 +60,7 @@ class Factoid @Inject constructor(
                 statement.execute()
             }
         }
+        vm = vm.withFunctions(entry.function)
         factoids.add(entry)
     }
 
@@ -133,6 +97,7 @@ class Factoid @Inject constructor(
             throw CancelEvent
         }
 
+        /* todo
         if (line.startsWith("raw")) {
             val match = findFactoid(line.parameterRange(1))
             if (match == null) {
@@ -157,6 +122,7 @@ class Factoid @Inject constructor(
             }
             throw CancelEvent
         }
+        */
 
         val match = findFactoid(line.parameters)
         if (match != null) {
@@ -164,23 +130,7 @@ class Factoid @Inject constructor(
         }
     }
 
-    private fun findFactoid(parameters: List<String>): Pair<Entry, Template>? {
-        for (pass in PASSES) {
-            for (factoid in factoids) {
-                val match = factoid.match(parameters, pass)
-                if (match != null) {
-                    return Pair(factoid, match)
-                }
-            }
-        }
-        return null
-    }
-
-    private fun isTruthy(string: String): Boolean {
-        return !string.isEmpty() && string != "0" && string != "false"
-    }
-
-    private fun handleFactoid(event: Command, factoid: Entry, match: Template) {
+    private fun handleFactoid(event: Command) {
         // detect infinite loop
         if (event.hasCause { it.meta == factoid }) {
             event.channel.sendMessage("Infinite loop in factoid ${factoid.name}")
@@ -212,94 +162,11 @@ class Factoid @Inject constructor(
                 }
         return finalTemplate
     }
-
-    private fun evaluateFactoidSubExpression(parent: Command, subExpression: CommandLine, depth: Int): List<String>? {
-        evaluateFactoidSubExpression(subExpression)?.apply { return this }
-
-        if (subExpression.startsWith("eval")) {
-            if (depth >= 25) {
-                return listOf("STACK OVERFLOW")
-            }
-            val match = findFactoid(subExpression.parameterRange(1))
-            if (match != null) {
-                return listOf(finalizeTemplate(parent, match.second, depth + 1).finish())
-            }
-        }
-
-        return null
-    }
-
-    @VisibleForTesting
-    internal fun evaluateFactoidSubExpression(subExpression: CommandLine): List<String>? {
-        if (subExpression.startsWith("upper")) return subExpression.parameterRange(1).map { it.toUpperCase() }
-        if (subExpression.startsWith("lower")) return subExpression.parameterRange(1).map { it.toLowerCase() }
-        if (subExpression.startsWith("escape")) return subExpression.parameterRange(1).map { CommandLine.escape(it) }
-
-        if (subExpression.startsWith("cat")) {
-            return listOf(catDb.getImage(*subExpression.parameterRange(1).toTypedArray()).url)
-        }
-        if (subExpression.startsWith("random")) {
-            return listOf(randomChoice(subExpression.parameterRange(1)))
-        }
-        if (subExpression.startsWith("if")) {
-            if (subExpression.parameters.size > 2) {
-                if (isTruthy(subExpression.parameters[1])) {
-                    return listOf(subExpression.parameters[2])
-                } else if (subExpression.parameters.size > 3) {
-                    return subExpression.parameterRange(3)
-                }
-            }
-            return listOf("")
-        }
-        if (subExpression.startsWith("equal")) {
-            // check for only one unique value
-            return listOf((subExpression.parameterRange(1).toSet().size <= 1).toString())
-        }
-        // sum the parameters or yield NaN if a non-number is passed.
-        if (subExpression.startsWith("sum")) {
-            var sum = BigDecimal.ZERO
-            for (component in subExpression.parameterRange(1)) {
-                try {
-                    sum += BigDecimal(component)
-                } catch(e: NumberFormatException) {
-                    return listOf("NaN")
-                }
-            }
-            return listOf(sum.stripTrailingZeros().toPlainString())
-        }
-
-        return null
-    }
 }
 
 data class Entry(
         val name: String,
         val value: String
 ) {
-    val components = CommandLine.parseParameters(name)
-    private val varargs = components.last() == "$"
-    var response = Template(value)
-
-    fun match(parameters: List<String>, pass: Int): Template? {
-        // fast paths
-        if (parameters.size < components.size) return null
-        if (parameters.size > components.size && (pass < 1 || !varargs)) return null
-
-        var result = response
-        var argumentIndex = 1
-        for ((i, component) in components.withIndex()) {
-            if (component == "$") {
-                val argumentValue = if (i == components.size - 1) {
-                    parameters.subList(i, parameters.size).joinToString(" ")
-                } else {
-                    parameters[i]
-                }
-                result = result.set(argumentIndex++.toString(), argumentValue)
-            } else if (!Factoid.equalsCanonical(components[i], parameters[i])) {
-                return null
-            }
-        }
-
-        return result
-    }
+    val function = FactoidFunction(name, value)
 }

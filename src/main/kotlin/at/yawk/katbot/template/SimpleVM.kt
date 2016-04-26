@@ -9,40 +9,40 @@ package at.yawk.katbot.template
 /**
  * @author yawkat
  */
-class SimpleVM : VM {
-    private var functions = emptyList<Function>()
-
-    fun addFunction(function: Function): RemoveHandle {
-        synchronized(this) {
-            functions += function
-        }
-        return object : RemoveHandle {
-            override fun remove() {
-                synchronized(this@SimpleVM) {
-                    functions -= function
-                }
-            }
-        }
-    }
-
-    fun invokeIfPresent(parameters: List<Expression>): List<String>? {
-        val expressionList = LazyExpressionList(this, parameters)
-        for (function in functions) {
-            val evaluated = function.evaluate(expressionList)
-            if (evaluated != null) return evaluated
-        }
-        return null
+open class SimpleVM(
+        val functions: FunctionList = FunctionList(),
+        private val interceptor: InvocationInterceptor = InvocationInterceptor.Default
+) : VM {
+    open fun invokeIfPresent(parameters: List<Expression>): List<String>? {
+        return interceptor.evaluate(functions, LazyExpressionList(this, parameters))
     }
 
     override fun invoke(parameters: List<Expression>): List<String> {
         return invokeIfPresent(parameters) ?: defaultReturn(parameters)
     }
 
-    protected fun defaultReturn(parameters: List<Expression>): List<String> {
+    fun withInterceptor(interceptor: InvocationInterceptor) = SimpleVM(functions, interceptor)
+
+    private fun withFunctions(functions: FunctionList) = SimpleVM(functions, interceptor)
+
+    override fun plusFunctions(functions: List<Function>) =
+            withFunctions(this.functions.plusFunctionsHead(functions))
+
+    fun plusFunctionTail(function: Function, mark: Any? = null) =
+            withFunctions(this.functions.plusFunctionTail(function, mark))
+
+    fun withoutFunction(function: Function) = SimpleVM(functions.withoutFunction(function), interceptor)
+
+    protected open fun defaultReturn(parameters: List<Expression>): List<String> {
         return listOf("\${" + parameters.flatMap { it.computeValue(this) }.joinToString(" ") + "}")
     }
 
-    interface RemoveHandle {
-        fun remove()
+    interface InvocationInterceptor {
+        fun evaluate(functionList: FunctionList, parameters: LazyExpressionList): List<String>?
+
+        object Default : InvocationInterceptor {
+            override fun evaluate(functionList: FunctionList, parameters: LazyExpressionList): List<String>?
+                    = functionList.evaluate(parameters)
+        }
     }
 }
