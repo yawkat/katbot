@@ -16,6 +16,9 @@ class FactoidFunction(name: String, value: String) : Function {
     private val varargs = nameParts.lastOrNull() == PARAMETER
     private val valueExpressions = Parser.parse(value)
 
+    val parameterCount: Int
+        get() = nameParts.count { it == PARAMETER }
+
     override fun evaluate(parameters: LazyExpressionList, mode: Function.EvaluationMode): List<String>? {
         var valueParameters = findParameters(parameters, mode) ?: return null
 

@@ -26,9 +26,9 @@ class LazyExpressionList(val vm: VM, val expressions: List<Expression>) : Iterab
         get() = expressions.indices.sumBy { getExpressionSize(it) }
 
     val minSize: Int
-        get() = expressions.indices.sumBy { if (values[it] != null) values.size else expressions[it].minSize }
+        get() = expressions.indices.sumBy { if (values[it] != null) values[it]!!.size else expressions[it].minSize }
     val maxSize: Int
-        get() = expressions.indices.sumBy { if (values[it] != null) values.size else expressions[it].maxSize }
+        get() = expressions.indices.sumBy { if (values[it] != null) values[it]!!.size else expressions[it].maxSize }
 
     fun startsWith(firstParameter: String): Boolean {
         val first = getOrNull(0)

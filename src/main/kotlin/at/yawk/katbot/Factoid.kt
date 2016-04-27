@@ -23,35 +23,31 @@ class Factoid @Inject constructor(
         val roleManager: RoleManager,
         val commandBus: CommandBus
 ) {
-    private val factoids = ArrayList<Entry>()
-    private var vm = SimpleVM().plusFunctions(listOf(
+    private var factoids = emptyList<Entry>()
+    private val vm = SimpleVM(FactoidFunctionList().plusFunctionsHead(listOf(
             Functions.If,
             Functions.Sum,
             Functions.Product,
             Functions.Equal,
             Functions.NumberCompare,
             RandomFunction
-    ))
+    )))
 
     @Synchronized
-    private fun removeFactoid(entry: Entry, removeFromCollection: Boolean) {
+    private fun removeFactoid(entry: Entry) {
         dataSource.connection.closed {
             val statement = it.prepareStatement("delete from factoids where canonicalName = ?")
             statement.setString(1, entry.name)
             statement.execute()
         }
-        vm = vm.minusFunction(entry)
-        if (removeFromCollection) factoids.remove(entry)
+        factoids -= entry
     }
 
     @Synchronized
     private fun addFactoid(entry: Entry, insertIntoDb: Boolean) {
-        val iterator = factoids.iterator()
-        while (iterator.hasNext()) {
-            val other = iterator.next()
+        for (other in factoids) {
             if (other.function.nameEquals(entry.function)) {
-                removeFactoid(other, removeFromCollection = false)
-                iterator.remove()
+                removeFactoid(other)
             }
         }
         if (insertIntoDb) {
@@ -62,8 +58,7 @@ class Factoid @Inject constructor(
                 statement.execute()
             }
         }
-        vm = vm.plusFunctionTail(entry.function, entry)
-        factoids.add(entry)
+        factoids = (factoids + entry).sortedBy { it.function.parameterCount }
     }
 
     fun start() {
@@ -81,7 +76,6 @@ class Factoid @Inject constructor(
         eventBus.subscribe(this)
     }
 
-    @Synchronized
     @Subscribe(priority = 100) // low priority
     fun command(event: Command) {
         val line = event.line
@@ -141,7 +135,7 @@ class Factoid @Inject constructor(
             if (match == null) {
                 event.channel.sendMessage("No such factoid")
             } else {
-                removeFactoid(match, removeFromCollection = true)
+                removeFactoid(match)
                 event.channel.sendMessage("Factoid deleted")
             }
             throw CancelEvent
@@ -199,6 +193,32 @@ class Factoid @Inject constructor(
             val index = ThreadLocalRandom.current().nextInt(size - 1)
             return listOf(parameters.getOrNull(index + 1)!!)
         }
+    }
+
+    /**
+     * [FunctionList] implementation that uses the [factoids] field. Allows us to keep factoids sorted properly.
+     */
+    private inner class FactoidFunctionList(
+            val head: FunctionList = FunctionListImpl(),
+            val tail: FunctionList = FunctionListImpl()
+    ) : FunctionList {
+        override fun evaluate(parameters: LazyExpressionList, mode: Function.EvaluationMode): FunctionList.Result? {
+            head.evaluate(parameters, mode)?.let { return it }
+            for (factoid in factoids) {
+                val result = factoid.function.evaluate(parameters, mode)
+                if (result != null) return FunctionList.Result(result, factoid)
+            }
+            return tail.evaluate(parameters, mode)
+        }
+
+        override fun plusFunctionsHead(functions: List<Function>, mark: Any?) =
+                FactoidFunctionList(head.plusFunctionsHead(functions, mark), tail)
+
+        override fun plusFunctionsTail(functions: List<Function>, mark: Any?) =
+                FactoidFunctionList(head.plusFunctionsTail(functions, mark), tail)
+
+        override fun minusFunction(mark: Any?) =
+                FactoidFunctionList(head.minusFunction(mark), tail.minusFunction(mark))
     }
 
     data class Entry(val name: String, val value: String) {

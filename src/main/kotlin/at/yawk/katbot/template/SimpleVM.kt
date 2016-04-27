@@ -10,7 +10,7 @@ package at.yawk.katbot.template
  * @author yawkat
  */
 class SimpleVM(
-        val functions: FunctionList = FunctionList(),
+        val functions: FunctionList = FunctionListImpl(),
         private val interceptor: InvocationInterceptor = InvocationInterceptor.Default
 ) : VM {
     fun invokeIfPresent(parameters: List<Expression>): List<String>? = invokeWithMark(parameters)?.result
