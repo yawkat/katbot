@@ -97,6 +97,7 @@ private val substitutions = listOf(
         Substitution("master", "boss"),
         Substitution("garbage collector", "speicherbereiniger"),
         Substitution("gc", "sb", wordBoundary = true),
+        Substitution("checkout", "ausprüfen"),
 
         // http://www.mirko-hansen.de/downloads/wosch.h
         Substitution("*", "zeiger", wordBoundary = true),
