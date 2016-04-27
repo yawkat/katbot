@@ -55,7 +55,7 @@ class ForumListener @Inject constructor(
             val configuration: ForumConfiguration
     ) {
 
-        private val sentThreadIds = HashSet<Int>()
+        private val sentThreadReplyCounts = HashMap<Int, Int>()
         private var firstPass = true
 
         fun poll() {
@@ -63,8 +63,8 @@ class ForumListener @Inject constructor(
 
             val threads = fetchThreads()
             for (thread in threads) {
-                val added = sentThreadIds.add(thread.id)
-                if (thread.replyCount <= 0 && added && !firstPass) {
+                val oldReplyCount = sentThreadReplyCounts.put(thread.id, thread.replyCount)
+                if (thread.replyCount != oldReplyCount && !firstPass) {
                     val message = Template(configuration.messagePattern)
                             .set("title", thread.title)
                             .set("author", thread.author)
