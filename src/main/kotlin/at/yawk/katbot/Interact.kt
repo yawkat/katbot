@@ -51,7 +51,7 @@ class Interact @Inject constructor(
 
         var target = parameters.getOrNull(1)
 
-        if ((target == "+=" || target == "-=") && parameters.size > 2) {
+        if (event.public && (target == "+=" || target == "-=") && parameters.size > 2) {
             if (!roleManager.hasRole(event.actor, Role.EDIT_INTERACT)) {
                 event.channel.sendMessage("You aren't allowed to do that")
                 return

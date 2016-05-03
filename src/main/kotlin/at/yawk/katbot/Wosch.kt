@@ -45,7 +45,7 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
         }
 
         val action = command.line.parameters[1]
-        if ((action == "+=" || action == "-=") && command.line.parameters.size > 2) {
+        if (command.public && (action == "+=" || action == "-=") && command.line.parameters.size > 2) {
             if (!roleManager.hasRole(command.actor, Role.EDIT_WOSCH)) {
                 command.channel.sendMessage("You aren't allowed to do that.")
                 throw CancelEvent
