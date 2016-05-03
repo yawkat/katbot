@@ -87,6 +87,7 @@ class RoleManagerImpl @Inject constructor(val eventBus: EventBus, val dataSource
                 }
             }
             event.channel.sendMessage("Done.")
+            throw CancelEvent
         } else {
             dataSource.connection.closed {
                 val statement = it.prepareStatement("select role from roles where username=? and host=?")
@@ -105,6 +106,7 @@ class RoleManagerImpl @Inject constructor(val eventBus: EventBus, val dataSource
                     event.channel.sendMessage(roles.joinToString(", "))
                 }
             }
+            throw CancelEvent
         }
     }
 }

@@ -86,7 +86,7 @@ class Interact @Inject constructor(
                 interactions.add(Entry(value))
                 event.channel.sendMessage("Interaction added")
             }
-            return
+            throw CancelEvent
         }
 
         if (parameters.size > 2 || interactions.isEmpty()) return
