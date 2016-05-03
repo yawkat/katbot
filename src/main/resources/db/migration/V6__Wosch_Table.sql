@@ -1,0 +1,5 @@
+CREATE TABLE wosch (
+  key VARCHAR_IGNORECASE PRIMARY KEY ,
+  value VARCHAR,
+  wordBoundary BOOLEAN
+)

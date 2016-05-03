@@ -60,7 +60,7 @@ class Interact @Inject constructor(
             if (target == "-=") {
                 if (interactions.find { it.value == value } == null) {
                     event.channel.sendMessage("No such interaction")
-                    return
+                    throw CancelEvent
                 }
 
                 dataSource.connection.closed {
@@ -74,7 +74,7 @@ class Interact @Inject constructor(
             } else if (target == "+=") {
                 if (interactions.find { it.value == value } != null) {
                     event.channel.sendMessage("Interaction already present")
-                    return
+                    throw CancelEvent
                 }
 
                 dataSource.connection.closed {

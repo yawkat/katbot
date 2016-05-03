@@ -7,35 +7,99 @@
 package at.yawk.katbot
 
 import com.google.common.annotations.VisibleForTesting
+import java.util.*
 import javax.inject.Inject
+import javax.sql.DataSource
 
 /**
  * @author yawkat
  */
 private val MAGIC_WORD = "wosch"
 
-class Wosch @Inject constructor(val eventBus: EventBus) {
+class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSource, val roleManager: RoleManager) {
+    private val substitutions = ArrayList<Substitution>()
+
+    @Synchronized
     fun start() {
         eventBus.subscribe(this)
+
+        dataSource.connection.closed {
+            val results = it.prepareStatement("select * from wosch").executeQuery()
+
+            while (results.next()) {
+                substitutions.add(Substitution(
+                        results.getString("key"),
+                        results.getString("value"),
+                        results.getBoolean("wordBoundary")
+                ))
+            }
+        }
     }
 
     @Subscribe
     fun command(command: Command) {
-        if (command.line.message.startsWith(MAGIC_WORD)) {
-            if (command.line.message.length <= MAGIC_WORD.length) {
-                command.channel.sendMessage("Usage: $MAGIC_WORD <message>")
-            } else {
-                val toWosch = command.line.message.substring(MAGIC_WORD.length + 1)
-                command.channel.sendMessage(woschinize(toWosch))
-            }
-
+        if (!command.line.startsWith(MAGIC_WORD)) return
+        if (command.line.parameters.size <= 1) {
+            command.channel.sendMessage("Usage: $MAGIC_WORD <message>")
             throw CancelEvent
         }
+
+        val action = command.line.parameters[1]
+        if ((action == "+=" || action == "-=") && command.line.parameters.size > 2) {
+            if (!roleManager.hasRole(command.actor, Role.EDIT_WOSCH)) {
+                command.channel.sendMessage("You aren't allowed to do that.")
+                throw CancelEvent
+            }
+
+            val key = command.line.parameters[2]
+
+            if (action == "-=") {
+                if (substitutions.find { it.english == key } == null) {
+                    command.channel.sendMessage("No such substitution")
+                    throw CancelEvent
+                }
+
+                dataSource.connection.closed {
+                    val statement = it.prepareStatement("delete from wosch where key = ?")
+                    statement.setString(1, key)
+                    statement.executeUpdate()
+                }
+                substitutions.removeAll { it.english == key }
+                command.channel.sendMessage("Substitution removed")
+                throw CancelEvent
+            } else if (command.line.parameters.size > 3) {
+                val value = command.line.parameters[3]
+                val wordBoundary = command.line.parameters.getOrNull(4) == "@wordBoundary"
+
+                if (substitutions.find { it.english == key } != null) {
+                    command.channel.sendMessage("Substitution already present")
+                    throw CancelEvent
+                }
+
+                dataSource.connection.closed {
+                    val statement = it.prepareStatement("insert into wosch (key, value, wordBoundary) values (?, ?, ?)")
+                    statement.setString(1, key)
+                    statement.setString(2, value)
+                    statement.setBoolean(3, wordBoundary)
+                    statement.executeUpdate()
+                }
+                substitutions.add(Substitution(key, value, wordBoundary))
+                command.channel.sendMessage("Substitution added")
+                throw CancelEvent
+            }
+        }
+
+        val toWosch = command.line.tailParameterString(1)
+        synchronized(this) {
+            command.channel.sendMessage(woschinize(substitutions, toWosch))
+        }
+
+        throw CancelEvent
     }
 }
 
 @VisibleForTesting
-internal fun woschinize(msg: String): String {
+internal fun woschinize(substitutions: List<Substitution>, msg: String): String {
     @Suppress("NAME_SHADOWING")
     var msg = msg
     var lower = msg.toLowerCase()
@@ -71,81 +135,4 @@ internal fun woschinize(msg: String): String {
     return msg
 }
 
-private data class Substitution(val english: String, val wosch: String, val wordBoundary: Boolean = false)
-
-private val substitutions = listOf(
-        Substitution("internet", "zwischennetz"),
-        Substitution("cip", "rechnerschwimmbecken"),
-        Substitution("thread", "faden"),
-        Substitution("include", "einbinde"),
-        Substitution("loop", "schleife"),
-        Substitution("dependency", "abhängigkeit"),
-        Substitution("dependencies", "abhängigkeiten"),
-        Substitution("config", "konfig"),
-        Substitution("dev", "entw", wordBoundary = true),
-        Substitution("software", "programm"),
-        Substitution("computer", "rechner"),
-        Substitution("bot", "maschine", wordBoundary = true),
-        Substitution("katbot", "katzenmaschine"),
-        Substitution("ircbox", "unterhaltungskiste"),
-        Substitution("ping", "pling"),
-        Substitution("webchat", "netzunterhalter"),
-        Substitution("client", "klient"),
-        Substitution("server", "dienstleister"),
-        Substitution("worker", "arbeiter"),
-        Substitution("slave", "sklave"),
-        Substitution("master", "boss"),
-        Substitution("garbage collector", "speicherbereiniger"),
-        Substitution("gc", "sb", wordBoundary = true),
-        Substitution("checkout", "ausprüfen"),
-
-        // http://www.mirko-hansen.de/downloads/wosch.h
-        Substitution("*", "zeiger", wordBoundary = true),
-        Substitution("abort", "abbrechen"),
-        Substitution("accept", "akzeptiere"),
-        Substitution("bind", "binde", wordBoundary = true),
-        Substitution("break", "breche"),
-        Substitution("calloc", "lreser"),
-        Substitution("case", "fall"),
-        Substitution("char", "buch", wordBoundary = true),
-        Substitution("closedir", "schliesseverz"),
-        Substitution("const", "konst"),
-        Substitution("continue", "fortsetzen"),
-        Substitution("do", "tue", wordBoundary = true),
-        Substitution("double", "doppel"),
-        Substitution("else", "sonst"),
-        Substitution("errno", "fehnu"),
-        Substitution("exit", "verlasse"),
-        Substitution("float", "flies"),
-        Substitution("for", "fuer", wordBoundary = true),
-        Substitution("fprintf", "fdruckef"),
-        Substitution("free", "befreie"),
-        Substitution("if", "falls", wordBoundary = true),
-        Substitution("int", "gan", wordBoundary = true),
-        Substitution("listen", "zuhoeren"),
-        Substitution("main", "haupt"),
-        Substitution("malloc", "preser"),
-        Substitution("memcpy", "speikop"),
-        Substitution("memset", "speischrei"),
-        Substitution("opendir", "oeffneverz"),
-        Substitution("perror", "dfehler"),
-        Substitution("printf", "druckef"),
-        Substitution("read", "lese"),
-        Substitution("readdir", "leseverz"),
-        Substitution("readlink", "leseverk"),
-        Substitution("realloc", "frreser"),
-        Substitution("return", "antworte"),
-        Substitution("sizeof", "groessevon"),
-        Substitution("socket", "buchse"),
-        Substitution("sprintf", "sdruckef"),
-        Substitution("static", "statisch"),
-        Substitution("strcat", "zeihin"),
-        Substitution("strcmp", "zeiver"),
-        Substitution("strcpy", "zeikop"),
-        Substitution("strlen", "zeilae"),
-        Substitution("struct", "struktur"),
-        Substitution("switch", "schalter"),
-        Substitution("void", "nix"),
-        Substitution("while", "waehrend"),
-        Substitution("write", "schreibe")
-)
+internal data class Substitution(val english: String, val wosch: String, val wordBoundary: Boolean = false)

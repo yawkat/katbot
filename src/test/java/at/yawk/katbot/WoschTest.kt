@@ -9,37 +9,44 @@ package at.yawk.katbot
 import org.testng.Assert.assertEquals
 import org.testng.annotations.Test
 
+private val testSubs = listOf(
+        Substitution("thread", "faden"),
+        Substitution("cip", "rechnerschwimmbecken"),
+        Substitution("include", "einbinde"),
+        Substitution("if", "falls", wordBoundary = true)
+)
+
 /**
  * @author yawkat
  */
 class WoschTest {
     @Test
     fun `no wosch`() {
-        assertEquals(woschinize("lorem ipsum dolor sit amet"), "lorem ipsum dolor sit amet")
+        assertEquals(woschinize(testSubs, "lorem ipsum dolor sit amet"), "lorem ipsum dolor sit amet")
     }
 
     @Test
     fun `one wosch`() {
-        assertEquals(woschinize("lorem ipsum dolthreador sit amet"), "lorem ipsum dolfadenor sit amet")
+        assertEquals(woschinize(testSubs, "lorem ipsum dolthreador sit amet"), "lorem ipsum dolfadenor sit amet")
     }
 
     @Test
     fun `two wosch`() {
-        assertEquals(woschinize("lorcipem ipsum dolthreador sit amcipet"), "lorrechnerschwimmbeckenem ipsum dolfadenor sit amrechnerschwimmbeckenet")
+        assertEquals(woschinize(testSubs, "lorcipem ipsum dolthreador sit amcipet"), "lorrechnerschwimmbeckenem ipsum dolfadenor sit amrechnerschwimmbeckenet")
     }
 
     @Test
     fun `capitalize`() {
-        assertEquals(woschinize("thread Thread"), "faden Faden")
+        assertEquals(woschinize(testSubs, "thread Thread"), "faden Faden")
     }
 
     @Test
     fun `boundary`() {
-        assertEquals(woschinize("if-schleife"), "falls-schleife")
+        assertEquals(woschinize(testSubs, "if-schleife"), "falls-schleife")
     }
 
     @Test
     fun `includen`() {
-        assertEquals(woschinize("includen"), "einbinden")
+        assertEquals(woschinize(testSubs, "includen"), "einbinden")
     }
 }
