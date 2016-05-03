@@ -113,6 +113,7 @@ enum class Role(vararg impliedBy: Role) {
     ADMIN(),
     ADD_FACTOIDS(ADMIN),
     DELETE_FACTOIDS(ADMIN),
+    EDIT_INTERACT(ADMIN),
     IGNORE_THROTTLE(ADMIN),
     IGNORE_RESTRICT(ADMIN);
 

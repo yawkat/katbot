@@ -8,39 +8,53 @@ package at.yawk.katbot
 
 import java.util.*
 
+fun CommandLine(parameters: List<String>): CommandLine {
+    val message = StringBuilder()
+    val _parameters = ArrayList<CommandLine.Parameter>()
+    for (parameter in parameters) {
+        if (!message.isEmpty()) message.append(' ')
+        _parameters.add(CommandLine.Parameter(parameter, message.length))
+        message.append(CommandLine.escape(parameter))
+    }
+    return CommandLine(message.toString(), _parameters)
+}
+
 /**
  * @author yawkat
  */
-class CommandLine private constructor(
+class CommandLine internal constructor(
         /** user input - do not trust */
         val message: String,
         /** user input - do not trust */
-        val parameters: List<String> = CommandLine.parseParameters(message)
+        private val _parameters: List<Parameter>
 ) {
-    constructor(message: String) : this(message, parseParameters(message))
+    val parameters = _parameters.map { it.value }
 
-    constructor(parameters: List<String>) : this(parameters.map { escape(it) }.joinToString(" "), parameters)
+    constructor(message: String) : this(message, parseParameters(message))
 
     fun messageIs(string: String) = message.equals(string, ignoreCase = true)
     fun startsWith(parameterString: String) = !parameters.isEmpty() && parameters[0].equals(parameterString, ignoreCase = true)
 
     fun parameterRange(start: Int, end: Int = parameters.size) = parameters.subList(start, end)
 
+    fun tailParameterString(startIndex: Int) = message.substring(_parameters[startIndex].startPosition)
+
     companion object {
-        internal fun parseParameters(message: String): List<String> {
-            val parameters = ArrayList<String>()
+        internal fun parseParameters(message: String): List<Parameter> {
+            val parameters = ArrayList<Parameter>()
             val parameterValue = StringBuilder()
+            var currentParameterStart = 0
 
             fun flushParameter() {
                 if (parameterValue.length > 0) {
-                    parameters.add(parameterValue.toString())
+                    parameters.add(Parameter(parameterValue.toString(), currentParameterStart))
                     parameterValue.setLength(0)
                 }
             }
 
             var quoted = false
             var escaped = false
-            for (c in message) {
+            for ((i, c) in message.withIndex()) {
                 if (!escaped) {
                     if (c == '"') {
                         quoted = !quoted
@@ -50,6 +64,7 @@ class CommandLine private constructor(
                         continue
                     } else if (c == ' ' && !quoted) {
                         flushParameter()
+                        currentParameterStart = i + 1
                         continue
                     }
                 } else {
@@ -66,4 +81,6 @@ class CommandLine private constructor(
                 .replace("\"", "\\\"")
                 .replace(" ", "\\ ")
     }
+
+    data class Parameter(val value: String, val startPosition: Int)
 }

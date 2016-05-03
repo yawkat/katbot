@@ -17,7 +17,7 @@ data class Config(
         val feeds: Map<URI, RssFeedListener.FeedConfiguration>,
         val forums: Map<URI, ForumListener.ForumConfiguration>,
         val paste: at.yawk.paste.client.Config,
-        val interactions: Map<String, List<String>>,
+        val interactions: List<String>,
         val ignore: Set<String>,
         val eventChannels: Set<String>,
         val docker: DockerCommand.DockerConfig

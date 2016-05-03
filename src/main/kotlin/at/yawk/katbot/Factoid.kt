@@ -8,6 +8,8 @@ package at.yawk.katbot
 
 import at.yawk.katbot.template.*
 import at.yawk.katbot.template.Function
+import org.kitteh.irc.client.library.element.Channel
+import org.kitteh.irc.client.library.element.MessageReceiver
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
@@ -23,6 +25,20 @@ class Factoid @Inject constructor(
         val roleManager: RoleManager,
         val commandBus: CommandBus
 ) {
+    companion object {
+        fun sendTemplateResultToChannel(channel: MessageReceiver, message: String) {
+            var msg = message
+            if (msg.startsWith("/me ")) {
+                val ctcp = "ACTION ${msg.substring(4)}"
+                channel.sendCTCPMessage(ctcp)
+            } else {
+                // escape /me with /send
+                if (msg.startsWith("/send ")) msg = msg.substring("/send ".length)
+                channel.sendMessage(msg)
+            }
+        }
+    }
+
     private var factoids = emptyList<Entry>()
     private val vm = SimpleVM(FactoidFunctionList().plusFunctionsHead(listOf(
             Functions.If,
@@ -164,7 +180,7 @@ class Factoid @Inject constructor(
                         event.userLocator,
                         Cause(event, mark)
                 )) {
-                    event.channel.sendMessage(finalString)
+                    sendTemplateResultToChannel(event.channel, finalString)
                 }
             }
             throw CancelEvent
