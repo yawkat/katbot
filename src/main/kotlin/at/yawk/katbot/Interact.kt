@@ -6,15 +6,33 @@
 
 package at.yawk.katbot
 
+import at.yawk.katbot.template.Parser
+import java.util.*
 import javax.inject.Inject
+import javax.sql.DataSource
 
 /**
  * @author yawkat
  */
-class Interact @Inject constructor(val eventBus: EventBus, val config: Config) {
+class Interact @Inject constructor(
+        val eventBus: EventBus,
+        val config: Config,
+        val dataSource: DataSource
+) {
+    private val interactions = HashMap<String, MutableList<Entry>>()
 
     fun start() {
         eventBus.subscribe(this)
+        dataSource.connection.closed {
+            val statement = it.createStatement()
+            val query = statement.executeQuery("select * from interact")
+
+            while (query.next()) {
+                val category = query.getString("category")
+                val valueTemplate = query.getString("valueTemplate")
+                interactions.getOrPut(category) { ArrayList() }.add(Entry(valueTemplate))
+            }
+        }
     }
 
     @Subscribe
@@ -33,5 +51,9 @@ class Interact @Inject constructor(val eventBus: EventBus, val config: Config) {
                 .setActorAndTarget(event.actor, target)
                 .sendTo(event.channel)
         throw CancelEvent
+    }
+
+    class Entry(val value: String) {
+        val expressions = Parser.parse(value)
     }
 }
