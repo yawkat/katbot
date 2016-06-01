@@ -80,7 +80,7 @@ class Karma @Inject constructor(
                 }
 
                 if (!event.public) {
-                    event.channel.sendMessage("Not here, sorry.")
+                    event.channel.sendMessageSafe("Not here, sorry.")
                     throw CancelEvent
                 }
 
@@ -102,7 +102,7 @@ class Karma @Inject constructor(
                         event.actor.nick,
                         canonicalizedSubject,
                         newKarma)
-                event.channel.sendMessage("$subject has a karma level of $newKarma, ${event.actor.nick}")
+                event.channel.sendMessageSafe("$subject has a karma level of $newKarma, ${event.actor.nick}")
                 throw CancelEvent
             }
         } else {
@@ -130,7 +130,7 @@ class Karma @Inject constructor(
                     } else {
                         value.toString()
                     }
-                    event.channel.sendMessage("$subject has a karma level of $valueText, ${event.actor.nick}")
+                    event.channel.sendMessageSafe("$subject has a karma level of $valueText, ${event.actor.nick}")
                     throw CancelEvent
                 }
             }

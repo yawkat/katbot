@@ -36,7 +36,7 @@ class UrbanDictionary @Inject constructor(val eventBus: EventBus, val urlShorten
             val definition = document.select(".def-panel").first()
 
             if (!definition.select(".contributor").any()) {
-                event.channel.sendMessage("${event.actor.nick}, no result found!")
+                event.channel.sendMessageSafe("${event.actor.nick}, no result found!")
                 throw CancelEvent
             }
 
@@ -52,7 +52,7 @@ class UrbanDictionary @Inject constructor(val eventBus: EventBus, val urlShorten
             } else definitionString
 
             val shortUrl = urlShortener.shorten(URI(url))
-            event.channel.sendMessage("${event.actor.nick}, $shortened $shortUrl")
+            event.channel.sendMessageSafe("${event.actor.nick}, $shortened $shortUrl")
             throw CancelEvent
         }
     }

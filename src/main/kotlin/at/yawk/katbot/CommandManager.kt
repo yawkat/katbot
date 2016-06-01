@@ -102,7 +102,7 @@ class CommandManager @Inject constructor(val eventBus: EventBus) : CommandBus {
                 val targetName = message.substring(targetStart, targetEnd)
                 val target = userLocator.getUser(targetName)
                 if (target == null) {
-                    location.sendMessage("Unknown user.")
+                    location.sendMessageSafe("Unknown user.")
                     return true
                 }
 

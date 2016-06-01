@@ -28,11 +28,11 @@ class Restrict @Inject constructor(val roleManager: RoleManager, val eventBus: E
         } else return
 
         if (!roleManager.hasRole(command.actor, Role.ADMIN)) {
-            command.channel.sendMessage("You aren't allowed to do that.")
+            command.channel.sendMessageSafe("You aren't allowed to do that.")
             throw CancelEvent
         }
         restricted = newRestrict
-        command.channel.sendMessage("Bot ${if (newRestrict) "" else "un"}restricted.")
+        command.channel.sendMessageSafe("Bot ${if (newRestrict) "" else "un"}restricted.")
         throw CancelEvent
     }
 

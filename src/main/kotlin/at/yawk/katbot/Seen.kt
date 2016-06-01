@@ -40,10 +40,10 @@ class Seen @Inject constructor(val eventBus: EventBus, val dataSource: DataSourc
                 if (result.next()) result.getTimestamp("seen").toInstant() else null
             }
             if (seen == null) {
-                command.channel.sendMessage("I have never seen $nick")
+                command.channel.sendMessageSafe("I have never seen $nick")
             } else {
                 val datetime = LocalDateTime.ofInstant(seen, ZoneId.of("Europe/Berlin"))
-                command.channel.sendMessage("I have last seen $nick on ${datetime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}")
+                command.channel.sendMessageSafe("I have last seen $nick on ${datetime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}")
             }
             throw CancelEvent
         }

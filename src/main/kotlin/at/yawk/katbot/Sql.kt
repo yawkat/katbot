@@ -32,7 +32,7 @@ class Sql @Inject constructor(
     fun command(command: Command) {
         if (command.line.message.startsWith("sql ")) {
             if (!roleManager.hasRole(command.actor, Role.ADMIN)) {
-                command.channel.sendMessage("You are not allowed to do that.")
+                command.channel.sendMessageSafe("You are not allowed to do that.")
                 throw CancelEvent
             }
             val results = ArrayList<String>()
@@ -54,14 +54,14 @@ class Sql @Inject constructor(
                 results.addAll(e.toString().split('\n'))
             }
             if (results.isEmpty()) {
-                command.channel.sendMessage("No results.")
+                command.channel.sendMessageSafe("No results.")
             } else if (results.size <= 2) {
-                results.forEach { command.channel.sendMessage(it) }
+                results.forEach { command.channel.sendMessageSafe(it) }
             } else {
                 val data = TextPasteData()
                 data.text = results.joinToString("\n")
                 val uri = pasteClient.save(data)
-                command.channel.sendMessage(uri)
+                command.channel.sendMessageSafe(uri)
             }
             throw CancelEvent
         }

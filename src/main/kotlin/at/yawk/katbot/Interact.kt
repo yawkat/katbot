@@ -53,13 +53,13 @@ class Interact @Inject constructor(
 
         if (event.public && (target == "+=" || target == "-=") && parameters.size > 2) {
             if (!roleManager.hasRole(event.actor, Role.EDIT_INTERACT)) {
-                event.channel.sendMessage("You aren't allowed to do that")
+                event.channel.sendMessageSafe("You aren't allowed to do that")
                 return
             }
             val value = event.line.tailParameterString(2)
             if (target == "-=") {
                 if (interactions.find { it.value == value } == null) {
-                    event.channel.sendMessage("No such interaction")
+                    event.channel.sendMessageSafe("No such interaction")
                     throw CancelEvent
                 }
 
@@ -70,10 +70,10 @@ class Interact @Inject constructor(
                     statement.executeUpdate()
                 }
                 interactions.removeAll { it.value == value }
-                event.channel.sendMessage("Interaction removed")
+                event.channel.sendMessageSafe("Interaction removed")
             } else if (target == "+=") {
                 if (interactions.find { it.value == value } != null) {
-                    event.channel.sendMessage("Interaction already present")
+                    event.channel.sendMessageSafe("Interaction already present")
                     throw CancelEvent
                 }
 
@@ -84,7 +84,7 @@ class Interact @Inject constructor(
                     statement.executeUpdate()
                 }
                 interactions.add(Entry(value))
-                event.channel.sendMessage("Interaction added")
+                event.channel.sendMessageSafe("Interaction added")
             }
             throw CancelEvent
         }

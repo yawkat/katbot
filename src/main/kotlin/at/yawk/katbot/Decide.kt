@@ -25,7 +25,7 @@ class Decide @Inject constructor(val eventBus: EventBus) {
             else -> randomChoice(possibilities)
         }
 
-        event.channel.sendMessage("${event.actor.nick}, $answer")
+        event.channel.sendMessageSafe("${event.actor.nick}, $answer")
         throw CancelEvent
     }
 }

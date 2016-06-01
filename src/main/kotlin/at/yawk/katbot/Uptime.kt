@@ -53,7 +53,7 @@ class Uptime @Inject constructor(val eventBus: EventBus) {
                 timeStrings.subList(0, timeStrings.size - 1).joinToString(separator = ", ") + " and " + timeStrings.last()
             }
 
-            event.channel.sendMessage("${event.actor.nick}, I've been up for $timeString")
+            event.channel.sendMessageSafe("${event.actor.nick}, I've been up for $timeString")
             throw CancelEvent
         }
     }

@@ -40,14 +40,14 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
     fun command(command: Command) {
         if (!command.line.startsWith(MAGIC_WORD)) return
         if (command.line.parameters.size <= 1) {
-            command.channel.sendMessage("Usage: $MAGIC_WORD <message>")
+            command.channel.sendMessageSafe("Usage: $MAGIC_WORD <message>")
             throw CancelEvent
         }
 
         val action = command.line.parameters[1]
         if (command.public && (action == "+=" || action == "-=") && command.line.parameters.size > 2) {
             if (!roleManager.hasRole(command.actor, Role.EDIT_WOSCH)) {
-                command.channel.sendMessage("You aren't allowed to do that.")
+                command.channel.sendMessageSafe("You aren't allowed to do that.")
                 throw CancelEvent
             }
 
@@ -55,7 +55,7 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
 
             if (action == "-=") {
                 if (substitutions.find { it.english == key } == null) {
-                    command.channel.sendMessage("No such substitution")
+                    command.channel.sendMessageSafe("No such substitution")
                     throw CancelEvent
                 }
 
@@ -65,14 +65,14 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
                     statement.executeUpdate()
                 }
                 substitutions.removeAll { it.english == key }
-                command.channel.sendMessage("Substitution removed")
+                command.channel.sendMessageSafe("Substitution removed")
                 throw CancelEvent
             } else if (command.line.parameters.size > 3) {
                 val value = command.line.parameters[3]
                 val wordBoundary = command.line.parameters.getOrNull(4) == "@wordBoundary"
 
                 if (substitutions.find { it.english == key } != null) {
-                    command.channel.sendMessage("Substitution already present")
+                    command.channel.sendMessageSafe("Substitution already present")
                     throw CancelEvent
                 }
 
@@ -84,14 +84,14 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
                     statement.executeUpdate()
                 }
                 substitutions.add(Substitution(key, value, wordBoundary))
-                command.channel.sendMessage("Substitution added")
+                command.channel.sendMessageSafe("Substitution added")
                 throw CancelEvent
             }
         }
 
         val toWosch = command.line.tailParameterString(1)
         synchronized(this) {
-            command.channel.sendMessage(woschinize(substitutions, toWosch))
+            command.channel.sendMessageSafe(woschinize(substitutions, toWosch))
         }
 
         throw CancelEvent
