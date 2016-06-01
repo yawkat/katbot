@@ -62,7 +62,7 @@ class EventManager @Inject constructor(
     fun command(command: Command) {
         if (command.line.messageIs("updateEvents")) {
             updateEvents()
-            command.channel.sendMessage("Update complete")
+            command.channel.sendMessageSafe("Update complete")
             throw CancelEvent
         }
     }
@@ -86,7 +86,7 @@ class EventManager @Inject constructor(
                             .toInstant()
 
                     if (deadline.isBefore(now) && deadline.isAfter(lastUpdateLocal)) {
-                        channels.forEach { it.sendMessage("[Reminder] ${event.name} is ${reminderOffset.value}") }
+                        channels.forEach { it.sendMessageSafe("[Reminder] ${event.name} is ${reminderOffset.value}") }
                     }
                 }
             }

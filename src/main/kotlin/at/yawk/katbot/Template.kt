@@ -102,7 +102,7 @@ class Template(
         } else {
             // escape /me and ~ prefix with /send
             if (msg.startsWith("/send ")) msg = msg.substring("/send ".length)
-            messageReceivers.forEach { it.sendMessage(msg) }
+            messageReceivers.forEach { it.sendMessageSafe(msg) }
         }
     }
 

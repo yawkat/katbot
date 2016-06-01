@@ -63,7 +63,7 @@ class DockerCommand @Inject constructor(
 
         val repl = this.repl
         if (repl == null) {
-            command.channel.sendMessage("REPL unavailable.")
+            command.channel.sendMessageSafe("REPL unavailable.")
             return
         }
         repl(command.line.message).thenAccept {
@@ -76,12 +76,12 @@ class DockerCommand @Inject constructor(
                 if (output.count { it == '\n' } >= 2) {
                     val data = TextPasteData()
                     data.text = output
-                    command.channel.sendMessage(pasteClient.save(data))
+                    command.channel.sendMessageSafe(pasteClient.save(data))
                 } else {
-                    output.split('\n').forEach { command.channel.sendMessage(it) }
+                    output.split('\n').forEach { command.channel.sendMessageSafe(it) }
                 }
             } else {
-                command.channel.sendMessage("No output")
+                command.channel.sendMessageSafe("No output")
             }
         }
     }

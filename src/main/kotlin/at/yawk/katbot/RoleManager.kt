@@ -47,13 +47,13 @@ class RoleManagerImpl @Inject constructor(val eventBus: EventBus, val dataSource
         val targetName = event.line.parameters[1]
         val target = event.userLocator.getUser(targetName)
         if (target == null) {
-            event.channel.sendMessage("Unknown user")
+            event.channel.sendMessageSafe("Unknown user")
             throw CancelEvent
         }
 
         if (event.line.parameters.size > 2) {
             if (!hasRole(event.actor, Role.ADMIN)) {
-                event.channel.sendMessage("You are not allowed to do that.")
+                event.channel.sendMessageSafe("You are not allowed to do that.")
                 throw CancelEvent
             }
 
@@ -65,7 +65,7 @@ class RoleManagerImpl @Inject constructor(val eventBus: EventBus, val dataSource
                         Role.valueOf(change.substring(1).toUpperCase())
                     } catch(e: IllegalArgumentException) {
                         // role not found
-                        event.channel.sendMessage("Unknown role $change")
+                        event.channel.sendMessageSafe("Unknown role $change")
                         null
                     }
                     if (role != null) {
@@ -78,15 +78,15 @@ class RoleManagerImpl @Inject constructor(val eventBus: EventBus, val dataSource
                             statement.setString(2, target.host)
                             statement.setString(3, role.name)
                             if (statement.executeUpdate() == 0) {
-                                event.channel.sendMessage("Did not apply $change")
+                                event.channel.sendMessageSafe("Did not apply $change")
                             }
                         } catch(e: SQLException) {
-                            event.channel.sendMessage((e.message ?: "Error").replace("\\s+".toRegex(), " "))
+                            event.channel.sendMessageSafe((e.message ?: "Error").replace("\\s+".toRegex(), " "))
                         }
                     }
                 }
             }
-            event.channel.sendMessage("Done.")
+            event.channel.sendMessageSafe("Done.")
         } else {
             dataSource.connection.closed {
                 val statement = it.prepareStatement("select role from roles where username=? and host=?")
@@ -100,9 +100,9 @@ class RoleManagerImpl @Inject constructor(val eventBus: EventBus, val dataSource
                 }
 
                 if (roles.isEmpty()) {
-                    event.channel.sendMessage("No roles")
+                    event.channel.sendMessageSafe("No roles")
                 } else {
-                    event.channel.sendMessage(roles.joinToString(", "))
+                    event.channel.sendMessageSafe(roles.joinToString(", "))
                 }
             }
         }

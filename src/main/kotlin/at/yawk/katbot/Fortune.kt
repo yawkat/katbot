@@ -31,7 +31,7 @@ class Fortune @Inject constructor(val eventBus: EventBus) {
     fun command(command: Command) {
         if (command.line.startsWith("fortune")) {
             val args = command.line.parameterRange(1)
-            command.channel.sendMessage(getFortune(
+            command.channel.sendMessageSafe(getFortune(
                     offensive = args.contains("-o")
             ))
             throw CancelEvent

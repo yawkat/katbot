@@ -81,7 +81,7 @@ class Factoid @Inject constructor(
         val line = event.line
         if (line.message.contains(" = ")) {
             if (!roleManager.hasRole(event.actor, Role.ADD_FACTOIDS)) {
-                event.channel.sendMessage("${event.actor.nick}, you are not allowed to do that.")
+                event.channel.sendMessageSafe("${event.actor.nick}, you are not allowed to do that.")
                 throw CancelEvent
             }
 
@@ -89,7 +89,7 @@ class Factoid @Inject constructor(
             val name = line.message.substring(0, splitIndex)
             val value = line.message.substring(splitIndex + " = ".length).trimEnd()
             addFactoid(Entry(name, value), insertIntoDb = true)
-            event.channel.sendMessage("Factoid added.")
+            event.channel.sendMessageSafe("Factoid added.")
             throw CancelEvent
         }
 
@@ -119,24 +119,24 @@ class Factoid @Inject constructor(
         if (line.startsWith("raw")) {
             val match = findFactoidForRawAndDelete()
             if (match == null) {
-                event.channel.sendMessage("No such factoid")
+                event.channel.sendMessageSafe("No such factoid")
             } else {
-                event.channel.sendMessage("~${match.name} = ${match.value}")
+                event.channel.sendMessageSafe("~${match.name} = ${match.value}")
             }
             throw CancelEvent
         }
 
         if (line.startsWith("delete")) {
             if (!roleManager.hasRole(event.actor, Role.DELETE_FACTOIDS)) {
-                event.channel.sendMessage("You are not allowed to do that")
+                event.channel.sendMessageSafe("You are not allowed to do that")
                 throw CancelEvent
             }
             val match = findFactoidForRawAndDelete()
             if (match == null) {
-                event.channel.sendMessage("No such factoid")
+                event.channel.sendMessageSafe("No such factoid")
             } else {
                 removeFactoid(match)
-                event.channel.sendMessage("Factoid deleted")
+                event.channel.sendMessageSafe("Factoid deleted")
             }
             throw CancelEvent
         }
@@ -149,9 +149,9 @@ class Factoid @Inject constructor(
             // detect infinite loop
             if (event.hasCause { it.meta == result.mark }) {
                 if (mark is Entry) {
-                    event.channel.sendMessage("Infinite loop in factoid ${mark.name}")
+                    event.channel.sendMessageSafe("Infinite loop in factoid ${mark.name}")
                 } else {
-                    event.channel.sendMessage("Infinite loop")
+                    event.channel.sendMessageSafe("Infinite loop")
                 }
             } else {
                 val finalString = result.result.joinToString(" ")
@@ -164,7 +164,7 @@ class Factoid @Inject constructor(
                         event.userLocator,
                         Cause(event, mark)
                 )) {
-                    event.channel.sendMessage(finalString)
+                    event.channel.sendMessageSafe(finalString)
                 }
             }
             throw CancelEvent

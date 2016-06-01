@@ -45,7 +45,7 @@ class UrlTitleLoader @Inject constructor(
                 val title = document.title()
                 if (title != null) {
                     val canonicalTitle = title.filter { isPrintableAsciiChar(it) }
-                    event.channel.sendMessage("${event.actor.nick}'s title: $canonicalTitle")
+                    event.channel.sendMessageSafe("${event.actor.nick}'s title: $canonicalTitle")
                 }
             } catch(e: IOException) {
             }

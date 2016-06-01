@@ -51,7 +51,7 @@ class Cip @Inject constructor(
             val state = try {
                 loadState()
             } catch(e: Exception) {
-                command.channel.sendMessage("$nick, could not fetch data")
+                command.channel.sendMessageSafe("$nick, could not fetch data")
                 return
             }
 
@@ -70,7 +70,7 @@ class Cip @Inject constructor(
                     .sortedBy { -it.value.total }
                     .map { "${it.key}: ${it.value.occupied}/${it.value.total}" }
                     .joinToString(" ")
-            command.channel.sendMessage("$nick, $rooms")
+            command.channel.sendMessageSafe("$nick, $rooms")
             throw CancelEvent
         }
     }
