@@ -7,6 +7,7 @@
 package at.yawk.katbot.template
 
 import java.math.BigDecimal
+import java.util.concurrent.ThreadLocalRandom
 
 private val TRUE = listOf("true")
 private val FALSE = listOf("false")
@@ -15,6 +16,8 @@ private val FALSE = listOf("false")
  * @author yawkat
  */
 object Functions {
+    val DEFAULT_FUNCTIONS = listOf(If, Sum, Product, Equal, NumberCompare, RandomFunction)
+
     fun isTruthy(value: String) = value != "0" && value.isNotBlank() && !value.equals("false", ignoreCase = true)
 
     object If : Function {
@@ -101,6 +104,16 @@ object Functions {
                 "geq" -> compareNeighbours(parameters) { left, right -> left >= right }
                 else -> null
             }
+        }
+    }
+
+    object RandomFunction : Function {
+        override fun evaluate(parameters: LazyExpressionList, mode: Function.EvaluationMode): List<String>? {
+            if (!parameters.startsWith("random")) return null
+            val size = parameters.size
+            if (size <= 0) return null
+            val index = ThreadLocalRandom.current().nextInt(size - 1)
+            return listOf(parameters.getOrNull(index + 1)!!)
         }
     }
 }

@@ -65,11 +65,11 @@ class ForumListener @Inject constructor(
             for (thread in threads) {
                 val oldReplyCount = sentThreadReplyCounts.put(thread.id, thread.replyCount)
                 if (thread.replyCount != oldReplyCount && !firstPass) {
-                    val message = Template(configuration.messagePattern)
-                            .set("title", thread.title)
-                            .set("author", thread.author)
-                            .set("uri", thread.uri.toString())
-                            .set("uri.short", { urlShortener.get().shorten(thread.uri).toString() })
+                    val message = configuration.messagePattern
+                            .with("title", thread.title)
+                            .with("author", thread.author)
+                            .with("uri", thread.uri.toString())
+                            .with("uri.short", { urlShortener.get().shorten(thread.uri).toString() })
                     log.info("Sending forum update '{}' to {} channels", message, configuration.channels.size)
                     message.sendTo(ircProvider.findChannels(configuration.channels))
                 }
@@ -109,6 +109,6 @@ class ForumListener @Inject constructor(
 
     data class ForumConfiguration(
             val channels: List<String>,
-            val messagePattern: String
+            val messagePattern: at.yawk.katbot.template.Template
     )
 }

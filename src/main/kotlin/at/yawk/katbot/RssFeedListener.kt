@@ -11,7 +11,6 @@ import com.rometools.rome.feed.synd.SyndFeed
 import com.rometools.rome.io.SyndFeedInput
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
-import org.kitteh.irc.client.library.Client
 import org.slf4j.LoggerFactory
 import org.xml.sax.InputSource
 import java.net.URI
@@ -68,10 +67,10 @@ class RssFeedListener @Inject constructor(
     }
 
     private fun fire(conf: FeedConfiguration, feedEntry: SyndEntry) {
-        val message = Template(conf.messagePattern)
-                .set("title", feedEntry.title)
-                .set("uri", feedEntry.uri)
-                .set("uri.short", urlShortener.get().shorten(URI.create(feedEntry.uri)).toString())
+        val message = conf.messagePattern
+                .with("title", feedEntry.title)
+                .with("uri", feedEntry.uri)
+                .with("uri.short", urlShortener.get().shorten(URI.create(feedEntry.uri)).toString())
 
         log.info("Sending feed update '{}' to {} channels", message, conf.channels.size)
 
@@ -90,6 +89,6 @@ class RssFeedListener @Inject constructor(
 
     data class FeedConfiguration(
             val channels: List<String>,
-            val messagePattern: String
+            val messagePattern: at.yawk.katbot.template.Template
     )
 }

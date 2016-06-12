@@ -40,14 +40,7 @@ class Factoid @Inject constructor(
     }
 
     private var factoids = emptyList<Entry>()
-    private val vm = SimpleVM(FactoidFunctionList().plusFunctionsHead(listOf(
-            Functions.If,
-            Functions.Sum,
-            Functions.Product,
-            Functions.Equal,
-            Functions.NumberCompare,
-            RandomFunction
-    )))
+    private val vm = SimpleVM(FactoidFunctionList().plusFunctionsHead(Functions.DEFAULT_FUNCTIONS))
 
     @Synchronized
     private fun removeFactoid(entry: Entry) {
@@ -198,16 +191,6 @@ class Factoid @Inject constructor(
                 if (results.size >= 2) return null // at most two images per query
                 listOf(catDb.getImage(*tags.toTypedArray()).url)
             }
-        }
-    }
-
-    private object RandomFunction : Function {
-        override fun evaluate(parameters: LazyExpressionList, mode: Function.EvaluationMode): List<String>? {
-            if (!parameters.startsWith("random")) return null
-            val size = parameters.size
-            if (size <= 0) return null
-            val index = ThreadLocalRandom.current().nextInt(size - 1)
-            return listOf(parameters.getOrNull(index + 1)!!)
         }
     }
 

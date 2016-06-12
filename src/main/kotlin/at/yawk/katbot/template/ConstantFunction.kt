@@ -6,7 +6,8 @@
 
 package at.yawk.katbot.template
 
-class ConstantFunction(val name: List<String>, val value: List<String>) : Function {
+class ConstantFunction(val name: List<String>, val valueFunction: () -> List<String>) : Function {
+    constructor(name: List<String>, value: List<String>) : this(name, { value })
     constructor(name: String, value: String) : this(listOf(name), listOf(value))
 
     override fun evaluate(parameters: LazyExpressionList, mode: Function.EvaluationMode): List<String>? {
@@ -18,6 +19,6 @@ class ConstantFunction(val name: List<String>, val value: List<String>) : Functi
             i++
         }
         if (i < name.size) return null
-        return value
+        return valueFunction()
     }
 }
