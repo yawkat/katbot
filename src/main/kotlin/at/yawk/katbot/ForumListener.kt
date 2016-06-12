@@ -25,7 +25,6 @@ class ForumListener @Inject constructor(
         val urlShortener: Provider<UrlShortener>,
         val ircProvider: IrcProvider
 ) {
-
     companion object {
         val log = LoggerFactory.getLogger(ForumListener::class.java)
     }
@@ -77,7 +76,7 @@ class ForumListener @Inject constructor(
             firstPass = false
         }
 
-        private fun fetchThreads(): ArrayList<ThreadInfo> {
+        private fun fetchThreads(): List<ThreadInfo> {
             val threads = ArrayList<ThreadInfo>()
             val document = Jsoup.connect(uri.toString()).get()
             for (element in document.select(".all_threads_container .thread_content")) {
@@ -89,11 +88,12 @@ class ForumListener @Inject constructor(
                 val replyCountText = element.select(".replycount").text().replace("[^\\d]".toRegex(), "")
                 val href = titleTag.attr("href")
                 threads.add(ThreadInfo(
-                        Integer.parseInt(href.substring(href.indexOf('/') + 1, href.indexOf('-'))),
-                        URI.create(titleTag.absUrl("href")),
-                        titleTag.text(),
-                        if (replyCountText.isEmpty()) 0 else Integer.parseInt(replyCountText),
-                        element.select(".topicstart > a").text()))
+                        id = Integer.parseInt(href.substring(href.indexOf('/') + 1, href.indexOf('-'))),
+                        uri = URI.create(titleTag.absUrl("href")),
+                        title = titleTag.text(),
+                        replyCount = if (replyCountText.isEmpty()) 0 else Integer.parseInt(replyCountText),
+                        author = element.select(".topicstart > a").text()
+                ))
             }
             return threads
         }

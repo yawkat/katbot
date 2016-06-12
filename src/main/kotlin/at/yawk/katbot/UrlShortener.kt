@@ -8,6 +8,7 @@ package at.yawk.katbot
 
 import at.yawk.paste.client.PasteClient
 import at.yawk.paste.model.URLPasteData
+import com.google.common.cache.CacheBuilder
 import com.google.inject.ImplementedBy
 import java.net.URI
 import javax.inject.Inject
@@ -24,10 +25,13 @@ internal class PasteUrlShortenerImpl @Inject constructor(
         val config: Config,
         val pasteClient: PasteClient
 ) : UrlShortener {
+    private val cache = CacheBuilder.newBuilder()
+            .maximumSize(1024)
+            .build<String, URI>()
 
-    override fun shorten(uri: URI): URI {
+    override fun shorten(uri: URI) = cache[uri.toASCIIString(), {
         val pasteData = URLPasteData()
         pasteData.url = uri.toURL()
-        return URI(pasteClient.save(pasteData))
-    }
+        URI(pasteClient.save(pasteData))
+    }]
 }
