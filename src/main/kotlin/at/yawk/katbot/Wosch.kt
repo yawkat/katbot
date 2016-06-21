@@ -19,6 +19,10 @@ private val MAGIC_WORD = "wosch"
 class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSource, val roleManager: RoleManager) {
     private val substitutions = ArrayList<Substitution>()
 
+    private fun sortSubstitutions() {
+        substitutions.sortBy { -it.english.length }
+    }
+
     @Synchronized
     fun start() {
         eventBus.subscribe(this)
@@ -34,6 +38,7 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
                 ))
             }
         }
+        sortSubstitutions()
     }
 
     @Subscribe
@@ -59,12 +64,14 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
                     throw CancelEvent
                 }
 
-                dataSource.connection.closed {
-                    val statement = it.prepareStatement("delete from wosch where key = ?")
-                    statement.setString(1, key)
-                    statement.executeUpdate()
+                synchronized(this) {
+                    dataSource.connection.closed {
+                        val statement = it.prepareStatement("delete from wosch where key = ?")
+                        statement.setString(1, key)
+                        statement.executeUpdate()
+                    }
+                    substitutions.removeAll { it.english == key }
                 }
-                substitutions.removeAll { it.english == key }
                 command.channel.sendMessageSafe("Substitution removed")
                 throw CancelEvent
             } else if (command.line.parameters.size > 3) {
@@ -76,14 +83,17 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
                     throw CancelEvent
                 }
 
-                dataSource.connection.closed {
-                    val statement = it.prepareStatement("insert into wosch (key, value, wordBoundary) values (?, ?, ?)")
-                    statement.setString(1, key)
-                    statement.setString(2, value)
-                    statement.setBoolean(3, wordBoundary)
-                    statement.executeUpdate()
+                synchronized(this) {
+                    dataSource.connection.closed {
+                        val statement = it.prepareStatement("insert into wosch (key, value, wordBoundary) values (?, ?, ?)")
+                        statement.setString(1, key)
+                        statement.setString(2, value)
+                        statement.setBoolean(3, wordBoundary)
+                        statement.executeUpdate()
+                    }
+                    substitutions.add(Substitution(key, value, wordBoundary))
+                    sortSubstitutions()
                 }
-                substitutions.add(Substitution(key, value, wordBoundary))
                 command.channel.sendMessageSafe("Substitution added")
                 throw CancelEvent
             }
