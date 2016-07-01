@@ -88,7 +88,7 @@ class DockerCommand @Inject constructor(
 
     fun createContainer() {
         val containerConfig = ContainerConfig()
-        containerConfig.image = "ubuntu"
+        containerConfig.image = "python:3"
         containerConfig.memory = 100 * 1024 * 1024 // 100mb
         containerConfig.tty = true
         containerConfig.attachStderr = true
