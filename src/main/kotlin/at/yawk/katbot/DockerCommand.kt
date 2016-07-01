@@ -8,10 +8,8 @@ package at.yawk.katbot
 
 import at.yawk.docker.DockerClient
 import at.yawk.docker.http.HttpException
-import at.yawk.docker.http.ReadCallback
 import at.yawk.docker.model.ContainerConfig
 import at.yawk.docker.model.HostConfig
-import at.yawk.docker.model.LogLine
 import at.yawk.paste.client.PasteClient
 import at.yawk.paste.model.TextPasteData
 import org.slf4j.LoggerFactory
@@ -53,7 +51,7 @@ class DockerCommand @Inject constructor(
     internal var repl: ((String) -> CompletionStage<String>)? = null
 
     fun start() {
-        createContainer()
+        createImage()
         eventBus.subscribe(this)
     }
 
@@ -86,9 +84,24 @@ class DockerCommand @Inject constructor(
         }
     }
 
+    fun createImage() {
+        dockerClient.buildImage()
+                .name("repl")
+                .remote("https://raw.githubusercontent.com/yawkat/katbot/master/src/main/resources/at/yawk/katbot/repl.dockerfile")
+                .send()
+                .whenComplete { it, error ->
+                    if (error == null) {
+                        createContainer()
+                    } else {
+                        log.error("Failed to create image", error)
+                    }
+
+                }
+    }
+
     fun createContainer() {
         val containerConfig = ContainerConfig()
-        containerConfig.image = "python:3"
+        containerConfig.image = "repl"
         containerConfig.memory = 100 * 1024 * 1024 // 100mb
         containerConfig.tty = true
         containerConfig.attachStderr = true
@@ -101,14 +114,13 @@ class DockerCommand @Inject constructor(
         containerConfig.hostConfig.binds = listOf("${config.docker.shellHome}:/home/katbot")
 
         log.debug("Creating container...")
-        dockerClient.createContainer().name(CONTAINER_NAME).config(containerConfig).send().whenComplete create@ { it, error ->
+        dockerClient.createContainer().name(CONTAINER_NAME).config(containerConfig).send().whenComplete { it, error ->
             if (error == null ||
                     // HACK: 409 = container exists
                     (error is HttpException && error.message?.startsWith("409") ?: false)) {
                 startContainer()
             } else {
                 log.error("Failed to create container", error)
-                return@create
             }
         }
     }
@@ -118,13 +130,12 @@ class DockerCommand @Inject constructor(
             // ignore error
 
             log.debug("Starting container...")
-            dockerClient.startContainer().id(CONTAINER_NAME).send().whenComplete start@ { it, error ->
-                if (error != null) {
+            dockerClient.startContainer().id(CONTAINER_NAME).send().whenComplete { it, error ->
+                if (error == null) {
+                    initScript()
+                } else {
                     log.error("Failed to start container", error)
-                    return@start
                 }
-
-                initScript()
             }
         }
     }
@@ -138,21 +149,18 @@ class DockerCommand @Inject constructor(
                 .id(CONTAINER_NAME)
                 .stderr(true).stdout(true).stdin(false).follow(true).timestamps(true).tail(0)
                 .send()
-        logsPromise.whenComplete(attach@ { stdout, error ->
-            if (error != null) {
-                log.error("Failed to attach to container", error)
-                return@attach
-            }
-
-            stdout.readCallback(object : ReadCallback<LogLine> {
-                override fun read(line: LogLine) {
+        logsPromise.whenComplete({ stdout, error ->
+            if (error == null) {
+                stdout.readCallback { line ->
                     log.trace("LINE {}", line)
                     while (!stdinStrings.offer(line.line)) {
                         // clear old input
                         stdinStrings.poll()
                     }
                 }
-            })
+            } else {
+                log.error("Failed to attach to container", error)
+            }
         })
 
         fun writeInput(string: String) {
