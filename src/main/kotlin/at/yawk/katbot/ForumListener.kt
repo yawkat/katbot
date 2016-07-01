@@ -63,7 +63,7 @@ class ForumListener @Inject constructor(
             val threads = fetchThreads()
             for (thread in threads) {
                 val oldReplyCount = sentThreadReplyCounts.put(thread.id, thread.replyCount)
-                if (thread.replyCount != oldReplyCount && !firstPass) {
+                if (oldReplyCount == null && thread.replyCount != oldReplyCount && !firstPass) {
                     val message = configuration.messagePattern
                             .with("title", thread.title)
                             .with("author", thread.author)
