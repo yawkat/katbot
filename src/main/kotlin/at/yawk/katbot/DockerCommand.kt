@@ -8,12 +8,19 @@ package at.yawk.katbot
 
 import at.yawk.docker.DockerClient
 import at.yawk.docker.http.HttpException
+import at.yawk.docker.http.ReadCallback
 import at.yawk.docker.model.ContainerConfig
 import at.yawk.docker.model.HostConfig
+import at.yawk.docker.model.ImageCreationProgress
 import at.yawk.paste.client.PasteClient
 import at.yawk.paste.model.TextPasteData
+import io.netty.buffer.Unpooled
+import org.kamranzafar.jtar.TarEntry
+import org.kamranzafar.jtar.TarHeader
+import org.kamranzafar.jtar.TarOutputStream
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -85,23 +92,39 @@ class DockerCommand @Inject constructor(
     }
 
     fun createImage() {
-        dockerClient.buildImage()
-                .name("repl")
-                .remote("https://raw.githubusercontent.com/yawkat/katbot/master/src/main/resources/at/yawk/katbot/repl.dockerfile")
+        log.debug("Creating image...")
+        val promise = dockerClient.buildImage()
+                .name("repl:latest")
+                .pull(true)
                 .send()
-                .whenComplete { it, error ->
+
+        val buf = ByteArrayOutputStream()
+        TarOutputStream(buf).closed {
+            val file = DockerCommand::class.java.getResourceAsStream("repl.dockerfile").readBytes()
+            it.putNextEntry(TarEntry(TarHeader.createHeader("Dockerfile", file.size.toLong(), 0, false)))
+            it.write(file)
+        }
+        promise.writeAndFlush(Unpooled.wrappedBuffer(buf.toByteArray()))
+        promise.finishWrite()
+        promise.whenComplete { it, error ->
+            it.readCallback(object : ReadCallback<ImageCreationProgress> {
+                override fun read(item: ImageCreationProgress?) {
+                }
+
+                override fun close() {
                     if (error == null) {
                         createContainer()
                     } else {
                         log.error("Failed to create image", error)
                     }
-
                 }
+            })
+        }
     }
 
     fun createContainer() {
         val containerConfig = ContainerConfig()
-        containerConfig.image = "repl"
+        containerConfig.image = "repl:latest"
         containerConfig.memory = 100 * 1024 * 1024 // 100mb
         containerConfig.tty = true
         containerConfig.attachStderr = true

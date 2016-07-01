@@ -1,4 +1,4 @@
 FROM ubuntu:16.04
 
 RUN apt-get update && \
-    apt-get install python3
+    apt-get -y install python3 sudo
