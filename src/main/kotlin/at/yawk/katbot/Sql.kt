@@ -8,6 +8,7 @@ package at.yawk.katbot
 
 import at.yawk.paste.client.PasteClient
 import at.yawk.paste.model.TextPasteData
+import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
 import javax.inject.Inject
@@ -39,15 +40,20 @@ class Sql @Inject constructor(
             try {
                 dataSource.connection.closed {
                     val statement = it.createStatement()
-                    val query = statement.executeQuery(command.line.message.substring("sql ".length))
+                    statement.execute(command.line.message.substring("sql ".length))
+                    val query: ResultSet? = statement.resultSet
 
-                    while (query.next()) {
-                        var row = "| "
-                        for (i in 1..query.metaData.columnCount) {
-                            row += query.getObject(i)
-                            row += " | "
+                    if (query == null) {
+                        results.add("done.")
+                    } else {
+                        while (query.next()) {
+                            var row = "| "
+                            for (i in 1..query.metaData.columnCount) {
+                                row += query.getObject(i)
+                                row += " | "
+                            }
+                            results.add(row)
                         }
-                        results.add(row)
                     }
                 }
             } catch (e: SQLException) {
