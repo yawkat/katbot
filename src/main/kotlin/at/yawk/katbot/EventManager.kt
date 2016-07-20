@@ -79,14 +79,14 @@ class EventManager @Inject constructor(
 
         if (lastUpdateLocal != null) {
             for (event in events) {
-                for (reminderOffset in REMINDER_OFFSETS) {
+                for ((offset, offsetName) in REMINDER_OFFSETS) {
                     val deadline = OffsetDateTime.ofInstant(event.deadline, ZONE)
-                            .minus(reminderOffset.key.first)
-                            .minus(reminderOffset.key.second)
+                            .minus(offset.first)
+                            .minus(offset.second)
                             .toInstant()
 
                     if (deadline.isBefore(now) && deadline.isAfter(lastUpdateLocal)) {
-                        channels.forEach { it.sendMessageSafe("[Reminder] ${event.name} is ${reminderOffset.value}") }
+                        channels.forEach { it.sendMessageSafe("[Reminder] ${event.name} is $offsetName") }
                     }
                 }
             }
@@ -109,10 +109,10 @@ class EventManager @Inject constructor(
             val oldTopic = channel.topic.value
             oldTopic.ifPresent { oldTopic ->
                 val newTopic = if (oldTopic.contains(EVENT_TOPIC_PREFIX.trimEnd())) {
-                    oldTopic.substring(0, oldTopic.indexOf(EVENT_TOPIC_PREFIX.trimEnd())) + topicSuffix
+                    oldTopic.substring(0, oldTopic.indexOf(EVENT_TOPIC_PREFIX.trimEnd()))
                 } else {
-                    oldTopic + topicSuffix
-                }
+                    oldTopic
+                } + topicSuffix
 
                 if (newTopic != oldTopic) {
                     channel.setTopic(newTopic)
