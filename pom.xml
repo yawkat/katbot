@@ -15,6 +15,7 @@
 
         <kotlin.version>1.0.3</kotlin.version>
         <jackson.version>2.7.3</jackson.version>
+        <jdbi.version>2.73</jdbi.version>
     </properties>
 
     <repositories>
@@ -104,6 +105,11 @@
             <groupId>org.kamranzafar</groupId>
             <artifactId>jtar</artifactId>
             <version>2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi</artifactId>
+            <version>${jdbi.version}</version>
         </dependency>
 
         <dependency>

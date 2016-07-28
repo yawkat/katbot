@@ -7,6 +7,7 @@
 package at.yawk.katbot
 
 import at.yawk.docker.DockerClient
+import at.yawk.katbot.markov.Markov
 import at.yawk.paste.client.PasteClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -24,6 +25,7 @@ import org.h2.jdbcx.JdbcDataSource
 import org.kitteh.irc.client.library.Client
 import org.kitteh.irc.client.library.element.MessageReceiver
 import org.kitteh.irc.lib.net.engio.mbassy.listener.Handler
+import org.skife.jdbi.v2.DBI
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -68,6 +70,7 @@ fun main(args: Array<String>) {
         it.bind<EventBus>().toInstance(eventBus)
         it.bind<Config>().toInstance(config)
         it.bind<DataSource>().toInstance(dataSource)
+        it.bind<DBI>().toInstance(DBI(dataSource))
         it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
         it.bind<HttpClient>().toInstance(HttpClientBuilder.create().build())
         it.bind<IrcProvider>().toInstance(object : IrcProvider {
@@ -107,6 +110,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Sql>().start()
     injector.getInstance<UrlTitleLoader>().start()
     injector.getInstance<Wosch>().start()
+    injector.getInstance<Markov>().start()
     injector.getInstance<DockerCommand>().start()
 }
 
