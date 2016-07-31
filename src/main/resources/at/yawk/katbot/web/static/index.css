@@ -1,0 +1,68 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "DejaVu Sans", sans-serif;
+    overflow-y: scroll;
+}
+
+input, button {
+    border-radius: 2px;
+    border: 1px solid #aaa;
+    padding: .5em;
+    background-color: transparent;
+}
+
+#content {
+    max-width: 60em;
+    margin: 1em auto;
+}
+
+karma table {
+    width: 100%;
+    text-align: right;
+    border-spacing: 0;
+    overflow-x: hidden;
+}
+
+karma table td, karma table th {
+    border: 0;
+    padding: .5em;
+    max-width: 30em;
+    overflow: hidden;
+}
+
+karma table tr:nth-child(odd) td {
+    background-color: #eee;
+}
+
+karma .controls button {
+    min-width: 7em;
+}
+
+karma .controls button:first-child {
+    float: left;
+}
+
+karma .controls button:last-child {
+    float: right;
+}
+
+karma .controls div {
+    left: 50%;
+    margin: 0 -10em;
+    width: 20em;
+    position: absolute;
+}
+
+karma .controls div > * {
+    width: 100%;
+}

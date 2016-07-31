@@ -1,0 +1,27 @@
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at https://mozilla.org/MPL/2.0/.
+  -->
+
+<div class="karma">
+    <div class="controls">
+        <button ng-click="page = page - 1" ng-hide="page <= 0">← Previous</button>
+        <div><input ng-model="search" placeholder="Search…"></div>
+        <button ng-click="page = page + 1" ng-hide="entries.length < 50">Next →</button>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th width="50%">Name</th>
+            <th width="50%">Karma</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="entry in entries">
+            <td>{{entry.canonicalName}}</td>
+            <td>{{entry.karma}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>

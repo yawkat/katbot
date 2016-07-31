@@ -106,7 +106,7 @@ class DockerCommand @Inject constructor(
         val buf = ByteArrayOutputStream()
         TarOutputStream(buf).closed {
             val file = DockerCommand::class.java.getResourceAsStream("repl.dockerfile").readBytes()
-            it.putNextEntry(TarEntry(TarHeader.createHeader("Dockerfile", file.size.toLong(), 0, false)))
+            it.putNextEntry(TarEntry(TarHeader.createHeader("Dockerfile", file.size.toLong(), 0, false, 0)))
             it.write(file)
         }
         promise.writeAndFlush(Unpooled.wrappedBuffer(buf.toByteArray()))

@@ -9,6 +9,7 @@ package at.yawk.katbot
 import at.yawk.katbot.action.DockerCommand
 import at.yawk.katbot.passive.ForumListener
 import at.yawk.katbot.passive.RssFeedListener
+import at.yawk.katbot.web.WebConfig
 import java.net.URI
 
 /**
@@ -23,7 +24,8 @@ data class Config(
         val interactions: List<String>,
         val ignore: Set<String>,
         val eventChannels: Set<String>,
-        val docker: DockerCommand.DockerConfig
+        val docker: DockerCommand.DockerConfig,
+        val web: WebConfig
 ) {
     data class Server(
             val host: String,

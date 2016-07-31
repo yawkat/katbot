@@ -11,6 +11,8 @@ import at.yawk.katbot.action.*
 import at.yawk.katbot.command.CommandManager
 import at.yawk.katbot.markov.Markov
 import at.yawk.katbot.passive.*
+import at.yawk.katbot.web.WebBootstrap
+import at.yawk.katbot.web.WebProvider
 import at.yawk.paste.client.PasteClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -50,7 +52,7 @@ fun main(args: Array<String>) {
     val yamlMapper = ObjectMapper(YAMLFactory())
             .registerKotlinModule()
 
-    var config: Config = Files.newInputStream(Paths.get("config.yml"))
+    val config: Config = Files.newInputStream(Paths.get("config.yml"))
             .closed { yamlMapper.readValue<Config>(it) }
 
     val dataSource = JdbcDataSource()
@@ -68,14 +70,17 @@ fun main(args: Array<String>) {
         fun handle(o: Any) = eventBus.post(o)
     })
 
+    val webBootstrap = WebBootstrap()
+
     val injector = Guice.createInjector(Module {
         it.bind<ObjectMapper>().toInstance(jsonMapper)
         it.bind<EventBus>().toInstance(eventBus)
         it.bind<Config>().toInstance(config)
         it.bind<DataSource>().toInstance(dataSource)
         it.bind<DBI>().toInstance(DBI(dataSource))
+        it.bind<WebProvider>().toInstance(webBootstrap)
         it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
-        it.bind<HttpClient>().toInstance(HttpClientBuilder.create().build())
+        it.bind<HttpClient>().toInstance(HttpClientBuilder.create().disableCookieManagement().build())
         it.bind<IrcProvider>().toInstance(object : IrcProvider {
             override fun findChannels(channelNames: Collection<String>): List<MessageReceiver> {
                 return channelNames.map {
@@ -115,6 +120,9 @@ fun main(args: Array<String>) {
     injector.getInstance<Wosch>().start()
     injector.getInstance<Markov>().start()
     injector.getInstance<Invite>().start()
+
+    webBootstrap.start()
+
     injector.getInstance<DockerCommand>().start()
 }
 
