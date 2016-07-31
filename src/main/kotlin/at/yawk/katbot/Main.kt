@@ -114,6 +114,7 @@ fun main(args: Array<String>) {
     injector.getInstance<UrlTitleLoader>().start()
     injector.getInstance<Wosch>().start()
     injector.getInstance<Markov>().start()
+    injector.getInstance<Invite>().start()
     injector.getInstance<DockerCommand>().start()
 }
 
