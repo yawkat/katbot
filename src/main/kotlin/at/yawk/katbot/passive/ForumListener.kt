@@ -91,8 +91,9 @@ class ForumListener @Inject constructor(
                 val titleTag = element.select(".name > a").first()
                 val replyCountText = element.select(".replycount").text().replace("[^\\d]".toRegex(), "")
                 val href = titleTag.attr("href")
+                val idEnd = href.indexOf('-')
                 threads.add(ThreadInfo(
-                        id = Integer.parseInt(href.substring(href.indexOf('/') + 1, href.indexOf('-'))),
+                        id = Integer.parseInt(href.substring(href.indexOf('/') + 1, if (idEnd == -1) href.length else idEnd)),
                         uri = URI.create(titleTag.absUrl("href")),
                         title = titleTag.text(),
                         replyCount = if (replyCountText.isEmpty()) 0 else Integer.parseInt(replyCountText),
