@@ -123,7 +123,7 @@ class EventManager @Inject constructor(
 
             if (!oldTopic.isPresent) {
                 log.warn("Channel ${channel.name} has unknown topic, sending /topic to check")
-                TopicCommand(channel.client, channel).execute()
+                TopicCommand(channel.client, channel.name).execute()
             }
         }
     }
