@@ -6,9 +6,12 @@
 
 package at.yawk.katbot.web
 
+import com.google.inject.ImplementedBy
+
 /**
  * @author yawkat
  */
+@ImplementedBy(WebBootstrap::class)
 interface WebProvider {
     fun addResource(resource: Any)
 }

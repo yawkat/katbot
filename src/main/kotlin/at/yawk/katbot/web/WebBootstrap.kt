@@ -15,12 +15,14 @@ import io.undertow.server.handlers.resource.ResourceHandler
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer
 import java.util.*
 import javax.inject.Inject
+import javax.inject.Singleton
 import javax.ws.rs.Path
 import javax.ws.rs.core.Application
 
 /**
  * @author yawkat
  */
+@Singleton
 class WebBootstrap @Inject constructor(val config: Config) : WebProvider {
     private val resources = HashSet<Any>()
     private var started = false
