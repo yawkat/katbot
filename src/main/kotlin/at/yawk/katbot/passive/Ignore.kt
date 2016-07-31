@@ -4,8 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.passive
 
+import at.yawk.katbot.CancelEvent
+import at.yawk.katbot.Config
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.Subscribe
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import javax.inject.Inject
 

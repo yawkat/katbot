@@ -6,6 +6,9 @@
 
 package at.yawk.katbot
 
+import at.yawk.katbot.action.DockerCommand
+import at.yawk.katbot.passive.ForumListener
+import at.yawk.katbot.passive.RssFeedListener
 import java.net.URI
 
 /**

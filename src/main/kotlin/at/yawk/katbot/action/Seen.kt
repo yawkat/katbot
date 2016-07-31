@@ -4,8 +4,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.action
 
+import at.yawk.katbot.CancelEvent
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.Subscribe
+import at.yawk.katbot.command.Command
+import at.yawk.katbot.sendMessageSafe
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import java.sql.Timestamp
 import java.time.Instant
@@ -21,7 +26,7 @@ import javax.sql.DataSource
  */
 class Seen @Inject constructor(val eventBus: EventBus, val dataSource: DataSource) {
     companion object {
-        private val PATTERN = "seen $NICK_PATTERN".toPattern(Pattern.CASE_INSENSITIVE)
+        private val PATTERN = "seen ${NICK_PATTERN}".toPattern(Pattern.CASE_INSENSITIVE)
     }
 
     fun start() {

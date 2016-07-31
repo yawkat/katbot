@@ -7,7 +7,10 @@
 package at.yawk.katbot
 
 import at.yawk.docker.DockerClient
+import at.yawk.katbot.action.*
+import at.yawk.katbot.command.CommandManager
 import at.yawk.katbot.markov.Markov
+import at.yawk.katbot.passive.*
 import at.yawk.paste.client.PasteClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory

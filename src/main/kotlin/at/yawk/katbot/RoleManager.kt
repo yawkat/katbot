@@ -6,6 +6,8 @@
 
 package at.yawk.katbot
 
+import at.yawk.katbot.action.closed
+import at.yawk.katbot.command.Command
 import com.google.inject.ImplementedBy
 import org.kitteh.irc.client.library.element.User
 import java.sql.SQLException
@@ -119,7 +121,8 @@ enum class Role(vararg impliedBy: Role) {
     EDIT_WOSCH(ADMIN),
     EDIT_MARKOV(ADMIN),
     IGNORE_THROTTLE(ADMIN),
-    IGNORE_RESTRICT(ADMIN);
+    IGNORE_RESTRICT(ADMIN),
+    INVITE(ADMIN);
 
     /**
      * flat [impliedBy] array.

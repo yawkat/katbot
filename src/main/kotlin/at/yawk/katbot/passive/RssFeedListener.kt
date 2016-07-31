@@ -4,8 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.passive
 
+import at.yawk.katbot.Config
+import at.yawk.katbot.IrcProvider
+import at.yawk.katbot.UrlShortener
 import com.rometools.rome.feed.synd.SyndEntry
 import com.rometools.rome.feed.synd.SyndFeed
 import com.rometools.rome.io.SyndFeedInput

@@ -4,8 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.passive
 
+import at.yawk.katbot.Config
+import at.yawk.katbot.IrcProvider
+import at.yawk.katbot.UrlShortener
+import at.yawk.katbot.template.Template
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -109,6 +113,6 @@ class ForumListener @Inject constructor(
 
     data class ForumConfiguration(
             val channels: List<String>,
-            val messagePattern: at.yawk.katbot.template.Template
+            val messagePattern: Template
     )
 }

@@ -4,8 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.passive
 
+import at.yawk.katbot.*
+import at.yawk.katbot.command.Command
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.kitteh.irc.client.library.command.TopicCommand
 import org.kitteh.irc.client.library.element.Channel

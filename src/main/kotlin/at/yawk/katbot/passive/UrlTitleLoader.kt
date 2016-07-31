@@ -4,8 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.passive
 
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.Subscribe
+import at.yawk.katbot.action.isPrintableAsciiChar
+import at.yawk.katbot.sendMessageSafe
 import org.jsoup.Jsoup
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import java.io.IOException

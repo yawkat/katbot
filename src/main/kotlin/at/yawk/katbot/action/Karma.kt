@@ -4,8 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.action
 
+import at.yawk.katbot.*
+import at.yawk.katbot.command.Command
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.slf4j.LoggerFactory
@@ -33,8 +35,8 @@ class Karma @Inject constructor(
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
 
-        private val MANIPULATE_PATTERN = Pattern.compile("$SUBJECT_PATTERN(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
-        private val VIEW_PATTERN = Pattern.compile("karma(p?) $SUBJECT_PATTERN", Pattern.CASE_INSENSITIVE)
+        private val MANIPULATE_PATTERN = Pattern.compile("${SUBJECT_PATTERN}(\\+\\+|--)(:? .*)?", Pattern.CASE_INSENSITIVE)
+        private val VIEW_PATTERN = Pattern.compile("karma(p?) ${SUBJECT_PATTERN}", Pattern.CASE_INSENSITIVE)
 
         private val CLOCK = Clock.systemUTC()
     }

@@ -4,8 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.action
 
+import at.yawk.katbot.*
+import at.yawk.katbot.command.Cause
+import at.yawk.katbot.command.Command
+import at.yawk.katbot.command.CommandBus
 import at.yawk.katbot.template.*
 import at.yawk.katbot.template.Function
 import org.kitteh.irc.client.library.element.Channel

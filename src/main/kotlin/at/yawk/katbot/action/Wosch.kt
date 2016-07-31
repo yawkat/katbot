@@ -4,8 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.action
 
+import at.yawk.katbot.*
+import at.yawk.katbot.command.Command
 import com.google.common.annotations.VisibleForTesting
 import java.util.*
 import javax.inject.Inject
@@ -45,7 +47,7 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
     fun command(command: Command) {
         if (!command.line.startsWith(MAGIC_WORD)) return
         if (command.line.parameters.size <= 1) {
-            command.channel.sendMessageSafe("Usage: $MAGIC_WORD <message>")
+            command.channel.sendMessageSafe("Usage: ${MAGIC_WORD} <message>")
             throw CancelEvent
         }
 

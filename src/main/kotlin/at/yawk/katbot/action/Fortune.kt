@@ -4,8 +4,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.action
 
+import at.yawk.katbot.CancelEvent
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.Subscribe
+import at.yawk.katbot.command.Command
+import at.yawk.katbot.sendMessageSafe
 import com.google.common.io.ByteStreams
 import javax.inject.Inject
 

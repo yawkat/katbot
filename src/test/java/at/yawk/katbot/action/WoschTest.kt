@@ -4,8 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
+package at.yawk.katbot.action
 
+import at.yawk.katbot.action.Substitution
+import at.yawk.katbot.action.woschinize
 import org.testng.Assert.assertEquals
 import org.testng.annotations.Test
 

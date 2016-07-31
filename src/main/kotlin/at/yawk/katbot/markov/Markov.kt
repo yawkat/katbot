@@ -7,6 +7,7 @@
 package at.yawk.katbot.markov
 
 import at.yawk.katbot.*
+import at.yawk.katbot.command.Command
 import org.skife.jdbi.v2.DBI
 import java.nio.file.Files
 import java.nio.file.Paths
