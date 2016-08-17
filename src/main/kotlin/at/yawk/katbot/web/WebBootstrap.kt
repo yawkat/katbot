@@ -29,6 +29,8 @@ class WebBootstrap @Inject constructor(val config: Config) : WebProvider {
 
     fun start() {
         val application = object : Application() {
+            override fun getClasses() = setOf(SecurityContainerRequestFilter::class.java)
+
             override fun getSingletons() = resources
         }
 

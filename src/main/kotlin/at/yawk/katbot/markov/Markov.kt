@@ -6,12 +6,15 @@
 
 package at.yawk.katbot.markov
 
-import at.yawk.katbot.*
+import at.yawk.katbot.CancelEvent
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.security.PermissionName
+import at.yawk.katbot.sendMessageSafe
 import org.skife.jdbi.v2.DBI
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
 import javax.inject.Inject
 
 /**
@@ -41,7 +44,7 @@ internal fun learnFromMessage(chainDao: ChainDao, chainName: String, message: Li
     }
 }
 
-class Markov @Inject constructor(val eventBus: EventBus, val roleManager: RoleManager, dbi: DBI) {
+class Markov @Inject constructor(val eventBus: EventBus, dbi: DBI) {
     private val dao = dbi.open(ChainDao::class.java)
 
     fun start() {
@@ -58,18 +61,12 @@ class Markov @Inject constructor(val eventBus: EventBus, val roleManager: RoleMa
             }
             when (event.line.parameters.getOrNull(2)) {
                 "+=" -> {
-                    if (!roleManager.hasRole(event.actor, Role.EDIT_MARKOV)) {
-                        event.channel.sendMessageSafe("You aren't allowed to do that.")
-                        throw CancelEvent
-                    }
+                    event.checkPermission(PermissionName.EDIT_MARKOV)
                     learnFromMessage(dao, chainName, event.line.parameterRange(3))
                     event.channel.sendMessageSafe("Learned a little!")
                 }
                 "loadlocal" -> {
-                    if (!roleManager.hasRole(event.actor, Role.ADMIN)) {
-                        event.channel.sendMessageSafe("You aren't allowed to do that.")
-                        throw CancelEvent
-                    }
+                    event.checkPermission(PermissionName.ADMIN)
                     var count = 0
                     Files.lines(Paths.get("markovin")).forEach {
                         val parts = it.split(' ').filter { it.isNotBlank() }

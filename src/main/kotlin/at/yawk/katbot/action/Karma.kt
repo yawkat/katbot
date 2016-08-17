@@ -8,6 +8,7 @@ package at.yawk.katbot.action
 
 import at.yawk.katbot.*
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.security.PermissionName
 import at.yawk.katbot.web.WebProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -38,7 +39,6 @@ internal const val NICK_PATTERN = "([\\w\\-`öäü\\[\\]]+)"
 class Karma @Inject constructor(
         val eventBus: EventBus,
         val objectMapper: ObjectMapper,
-        val roleManager: RoleManager,
         val web: WebProvider,
         dbi: DBI
 ) {
@@ -84,7 +84,7 @@ class Karma @Inject constructor(
 
                 val canonicalizedSubject = canonicalizeSubjectName(subject)
                 if (!throttle.trySend(canonicalizedSubject)
-                        && !roleManager.hasRole(event.actor, Role.IGNORE_THROTTLE)) {
+                        && !event.isPermitted(PermissionName.IGNORE_THROTTLE)) {
                     throw CancelEvent
                 }
 

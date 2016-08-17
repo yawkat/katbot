@@ -10,12 +10,11 @@ import at.yawk.katbot.*
 import at.yawk.katbot.command.Cause
 import at.yawk.katbot.command.Command
 import at.yawk.katbot.command.CommandBus
+import at.yawk.katbot.security.PermissionName
 import at.yawk.katbot.template.*
 import at.yawk.katbot.template.Function
-import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.element.MessageReceiver
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
 import javax.sql.DataSource
 
@@ -26,7 +25,6 @@ class Factoid @Inject constructor(
         val eventBus: EventBus,
         val catDb: CatDb,
         val dataSource: DataSource,
-        val roleManager: RoleManager,
         val commandBus: CommandBus
 ) {
     companion object {
@@ -93,10 +91,7 @@ class Factoid @Inject constructor(
     fun command(event: Command) {
         val line = event.line
         if (line.message.contains(" = ")) {
-            if (!roleManager.hasRole(event.actor, Role.ADD_FACTOIDS)) {
-                event.channel.sendMessageSafe("${event.actor.nick}, you are not allowed to do that.")
-                throw CancelEvent
-            }
+            event.checkPermission(PermissionName.ADD_FACTOIDS)
 
             val splitIndex = line.message.indexOf(" = ")
             val name = line.message.substring(0, splitIndex)
@@ -140,10 +135,7 @@ class Factoid @Inject constructor(
         }
 
         if (line.startsWith("delete")) {
-            if (!roleManager.hasRole(event.actor, Role.DELETE_FACTOIDS)) {
-                event.channel.sendMessageSafe("You are not allowed to do that")
-                throw CancelEvent
-            }
+            event.checkPermission(PermissionName.DELETE_FACTOIDS)
             val match = findFactoidForRawAndDelete()
             if (match == null) {
                 event.channel.sendMessageSafe("No such factoid")
@@ -169,12 +161,9 @@ class Factoid @Inject constructor(
             } else {
                 val finalString = result.result.joinToString(" ")
                 if (!commandBus.parseAndFire(
-                        event.actor,
-                        event.channel,
+                        event.context,
                         finalString,
-                        event.public,
                         false,
-                        event.userLocator,
                         Cause(event, mark)
                 )) {
                     sendTemplateResultToChannel(event.channel, finalString)

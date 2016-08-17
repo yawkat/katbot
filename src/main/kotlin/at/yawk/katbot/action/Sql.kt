@@ -6,8 +6,12 @@
 
 package at.yawk.katbot.action
 
-import at.yawk.katbot.*
+import at.yawk.katbot.CancelEvent
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.security.PermissionName
+import at.yawk.katbot.sendMessageSafe
 import at.yawk.paste.client.PasteClient
 import at.yawk.paste.model.TextPasteData
 import java.sql.ResultSet
@@ -24,7 +28,6 @@ import javax.sql.DataSource
 class Sql @Inject constructor(
         val eventBus: EventBus,
         val dataSource: DataSource,
-        val roleManager: RoleManager,
         val pasteClient: PasteClient
 ) {
     fun start() {
@@ -34,10 +37,7 @@ class Sql @Inject constructor(
     @Subscribe
     fun command(command: Command) {
         if (command.line.message.startsWith("sql ")) {
-            if (!roleManager.hasRole(command.actor, Role.ADMIN)) {
-                command.channel.sendMessageSafe("You are not allowed to do that.")
-                throw CancelEvent
-            }
+            command.checkPermission(PermissionName.ADMIN)
             val results = ArrayList<String>()
             try {
                 dataSource.connection.closed {

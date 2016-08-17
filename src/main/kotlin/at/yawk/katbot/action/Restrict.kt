@@ -6,15 +6,22 @@
 
 package at.yawk.katbot.action
 
-import at.yawk.katbot.*
+import at.yawk.katbot.CancelEvent
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.security.IrcPermission
+import at.yawk.katbot.security.PermissionName
+import at.yawk.katbot.security.Security
+import at.yawk.katbot.sendMessageSafe
+import org.apache.shiro.mgt.SecurityManager
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import javax.inject.Inject
 
 /**
  * @author yawkat
  */
-class Restrict @Inject constructor(val roleManager: RoleManager, val eventBus: EventBus) {
+class Restrict @Inject constructor(val eventBus: EventBus, val securityManager: SecurityManager) {
     private var restricted = false
 
     fun start() {
@@ -29,10 +36,7 @@ class Restrict @Inject constructor(val roleManager: RoleManager, val eventBus: E
             false
         } else return
 
-        if (!roleManager.hasRole(command.actor, Role.ADMIN)) {
-            command.channel.sendMessageSafe("You aren't allowed to do that.")
-            throw CancelEvent
-        }
+        command.checkPermission(PermissionName.ADMIN)
         restricted = newRestrict
         command.channel.sendMessageSafe("Bot ${if (newRestrict) "" else "un"}restricted.")
         throw CancelEvent
@@ -40,6 +44,10 @@ class Restrict @Inject constructor(val roleManager: RoleManager, val eventBus: E
 
     @Subscribe(priority = -999)
     fun onPublicMessage(event: ChannelMessageEvent) {
-        if (restricted && !roleManager.hasRole(event.actor, Role.IGNORE_RESTRICT)) throw CancelEvent
+        if (restricted) {
+            val subject = Security.getSubjectForUser(securityManager, event.actor)
+            val permission = Security.createPermissionForChannelAndName(event.channel, PermissionName.IGNORE_RESTRICT)
+            if (!subject.isPermitted(permission)) throw CancelEvent
+        }
     }
 }

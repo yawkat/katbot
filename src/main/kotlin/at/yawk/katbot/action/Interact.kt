@@ -8,6 +8,7 @@ package at.yawk.katbot.action
 
 import at.yawk.katbot.*
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.security.PermissionName
 import at.yawk.katbot.template.ConstantFunction
 import at.yawk.katbot.template.Parser
 import at.yawk.katbot.template.SimpleVM
@@ -21,8 +22,7 @@ import javax.sql.DataSource
 class Interact @Inject constructor(
         val eventBus: EventBus,
         val config: Config,
-        val dataSource: DataSource,
-        val roleManager: RoleManager
+        val dataSource: DataSource
 ) {
     private val interactions = HashMap<String, MutableList<Entry>>()
     private val baseVm = SimpleVM()
@@ -54,10 +54,7 @@ class Interact @Inject constructor(
         var target = parameters.getOrNull(1)
 
         if (event.public && (target == "+=" || target == "-=") && parameters.size > 2) {
-            if (!roleManager.hasRole(event.actor, Role.EDIT_INTERACT)) {
-                event.channel.sendMessageSafe("You aren't allowed to do that")
-                return
-            }
+            event.checkPermission(PermissionName.EDIT_INTERACT)
             val value = event.line.tailParameterString(2)
             if (target == "-=") {
                 if (interactions.find { it.value == value } == null) {
