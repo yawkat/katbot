@@ -64,7 +64,7 @@
             <td class="user">{{user.username}}@{{user.host}}</td>
             <td class="roles">
                 <div>
-                    <label ng-repeat="(role, _) in roles">
+                    <label ng-repeat="(role, _) in roles" ng-class="user.$$roles[role]() ? 'checked' : ''" >
                         <input type="checkbox" ng-model="user.$$roles[role]" ng-model-options="{ getterSetter: true }">
                         {{role}}
                     </label>

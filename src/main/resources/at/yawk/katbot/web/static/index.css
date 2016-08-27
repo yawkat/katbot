@@ -38,6 +38,10 @@ input, button {
     background-color: transparent;
 }
 
+label.checked {
+    background: #ffa;
+}
+
 table {
     border-spacing: 0;
 }
