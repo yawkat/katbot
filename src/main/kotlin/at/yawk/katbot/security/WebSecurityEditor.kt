@@ -122,7 +122,7 @@ class WebSecurityEditor @Inject internal constructor(
     }
 
     @PUT
-    @Path("/users/{username:\\w+}@{host}")
+    @Path("/users/{username:[^@]+}@{host:.+}")
     fun updateUser(@Context subject: Subject, @PathParam("username") username: String, @PathParam("host") host: String, roles: Set<String>) {
         subject.checkPermission(PermissionName.ADMIN)
         dbi.inTransaction { handle, tx ->
