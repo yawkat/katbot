@@ -136,6 +136,10 @@ dd {
     -moz-column-count: 2;
 }
 
+.rolePermissions dt .remove {
+    float: right;
+}
+
 .rolePermissions tr:hover {
     background: #ccc;
 }

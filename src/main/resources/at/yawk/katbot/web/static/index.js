@@ -73,6 +73,20 @@ katbotApp.component('security', {
             });
         };
 
+        $scope.deleteRole = function (role) {
+            $http.delete("api/security/roles/" + role).then(function () {
+                delete $scope.roles[role];
+            });
+        };
+
+        $scope.createRole = function (role) {
+            if (role) {
+                $http.put("api/security/roles/" + role, []).then(function () {
+                    $scope.roles[role] = [];
+                });
+            }
+        };
+
         $scope.removePermission = function (role, permission) {
             var newPermissions = angular.copy($scope.roles[role]);
             newPermissions.splice(newPermissions.indexOf(permission), 1);

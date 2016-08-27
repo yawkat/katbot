@@ -14,7 +14,10 @@
     </div>
     -->
     <dl class="rolePermissions">
-        <dt ng-repeat-start="(role, rolePerms) in roles">{{role}}:</dt>
+        <dt ng-repeat-start="(role, rolePerms) in roles">
+            {{role}}:
+            <span class="remove" ng-click="deleteRole(role)">&#128473;</span>
+        </dt>
         <dd ng-repeat-end>
             <table>
                 <tbody>
@@ -43,6 +46,11 @@
                 </tbody>
             </table>
         </dd>
+
+        <dt>
+            <input type="text" ng-model="$$roleAdd" placeholder="Role">
+            <span class="add" ng-click="createRole($$roleAdd)">&#10133;</span>
+        </dt>
     </dl>
     <table class="userRoles">
         <thead>
