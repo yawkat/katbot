@@ -14,6 +14,7 @@ import at.yawk.katbot.security.PermissionName
 import at.yawk.katbot.security.Security
 import at.yawk.katbot.sendMessageSafe
 import com.google.inject.ImplementedBy
+import org.apache.shiro.ShiroException
 import org.apache.shiro.mgt.SecurityManager
 import org.apache.shiro.subject.Subject
 import org.kitteh.irc.client.library.element.Channel
@@ -83,12 +84,16 @@ class CommandManager @Inject constructor(val eventBus: EventBus, val securityMan
         val session = Security.getSubjectForUser(securityManager, actor)
 
 
-        if (parseAndFire(
-                CommandContext(session, actor, location, userLocator, public),
-                message,
-                parseWithoutPrefix = !public,
-                cause = null)) {
-            throw CancelEvent
+        try {
+            if (parseAndFire(
+                    CommandContext(session, actor, location, userLocator, public),
+                    message,
+                    parseWithoutPrefix = !public,
+                    cause = null)) {
+                throw CancelEvent
+            }
+        } catch (e: ShiroException) {
+            location.sendMessage("${actor.nick}: ${e.message}")
         }
     }
 

@@ -16,6 +16,8 @@ import org.kitteh.irc.client.library.element.User
  * @author yawkat
  */
 object Security {
+    val DEFAULT_ROLE_NAME = "DEFAULT"
+
     fun createAuthenticationToken(actor: User): AuthenticationToken = IrcAuthenticationToken(createUserInfo(actor))
 
     fun createUserInfo(actor: User) = IrcUserInfo(actor.nick, actor.host)
@@ -25,6 +27,8 @@ object Security {
         subject.login(Security.createAuthenticationToken(actor))
         return subject
     }
+
+    fun getIrcUserForSubject(subject: Subject): IrcUserInfo = subject.principal as IrcUserInfo
 
     fun createPermissionForChannelAndName(channel: Channel?, name: PermissionName) = IrcPermission(null, channel?.name, name)
 }

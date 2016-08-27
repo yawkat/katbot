@@ -14,6 +14,23 @@ body {
     overflow-y: scroll;
 }
 
+#navbar:after {
+    clear: both;
+    content: '';
+    display: block;
+}
+
+#navbar li {
+    display: block;
+    float: left;
+    padding: 1em;
+    cursor: pointer;
+}
+
+#navbar li.selected {
+    background: #ccc;
+}
+
 input, button {
     border-radius: 2px;
     border: 1px solid #aaa;
@@ -21,7 +38,11 @@ input, button {
     background-color: transparent;
 }
 
-#content {
+table {
+    border-spacing: 0;
+}
+
+#content, #navbar {
     max-width: 60em;
     margin: 1em auto;
 }
@@ -65,4 +86,111 @@ karma .controls div {
 
 karma .controls div > * {
     width: 100%;
+}
+
+.security dt, .security dd {
+    width: 90%;
+}
+
+.security dl dt {
+    font-weight: bold;
+}
+
+.security > * {
+    margin: 1em 0;
+    border: 1px solid #ccc;
+    padding: 1em;
+    max-width: 100%;
+}
+
+.security > table {
+    width: 100%;
+}
+
+.security input {
+    padding: 0;
+    height: 100%;
+}
+
+.security .rolePermissions tr {
+    height: 1.8em;
+}
+
+.security .rolePermissions select {
+    width: 100%;
+}
+
+.security .roles select {
+    width: 100%;
+    height: 8em;
+}
+
+dd {
+    margin-bottom: .5em;
+    padding-bottom: .5em;
+    border-bottom: 1px solid #ccc;
+}
+
+.rolePermissions {
+    column-count: 2;
+    -moz-column-count: 2;
+}
+
+.rolePermissions tr:hover {
+    background: #ccc;
+}
+
+.rolePermissions .channel {
+    padding-right: 1em;
+    width: 10em;
+}
+
+.rolePermissions .permission {
+    padding-right: 1em;
+    width: 10em;
+}
+
+.userRoles {
+    table-layout: fixed;
+}
+
+.userRoles .user {
+    font-family: "Source Code Pro", monospace;
+    word-wrap: break-word;
+}
+
+.userRoles td {
+    border-bottom: 1px solid #ccc;
+    vertical-align: top;
+    text-align: left;
+    overflow-x: scroll;
+}
+
+.userRoles input[type=text] {
+    display: inline;
+    width: 7em;
+    margin: .2em 0;
+}
+
+.userRoles td div {
+    column-count: 3;
+    -moz-column-count: 3;
+}
+
+.userRoles label {
+    padding: .2em;
+    display: block;
+}
+
+.add, .remove {
+    cursor: pointer;
+    text-align: center;
+}
+
+.remove {
+    color: red;
+}
+
+.add {
+    color: green;
 }

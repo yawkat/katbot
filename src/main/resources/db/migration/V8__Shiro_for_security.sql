@@ -23,16 +23,16 @@ CREATE TABLE user_roles (
   host     VARCHAR NOT NULL,
   role     VARCHAR NOT NULL,
   PRIMARY KEY (username, host, role),
-  FOREIGN KEY (role) REFERENCES roles
+  FOREIGN KEY (role) REFERENCES roles ON DELETE CASCADE
 );
 
 CREATE TABLE role_permissions (
   role       VARCHAR NOT NULL,
-  server     VARCHAR DEFAULT NULL,
-  channel    VARCHAR DEFAULT NULL,
+  server     VARCHAR NOT NULL DEFAULT '',
+  channel    VARCHAR NOT NULL DEFAULT '',
   permission VARCHAR NOT NULL,
-  PRIMARY KEY (role, permission),
-  FOREIGN KEY (role) REFERENCES roles
+  PRIMARY KEY (role, permission, server, channel),
+  FOREIGN KEY (role) REFERENCES roles ON DELETE CASCADE
 );
 
 INSERT INTO roles (role) VALUES
@@ -44,7 +44,8 @@ INSERT INTO roles (role) VALUES
   ('IGNORE_THROTTLE'),
   ('IGNORE_RESTRICT'),
   ('INVITE'),
-  ('ADMIN');
+  ('ADMIN'),
+  ('DEFAULT');
 INSERT INTO user_roles (username, host, role) SELECT username, host, role
                                               FROM roles_migr;
 INSERT INTO role_permissions (role, permission) VALUES

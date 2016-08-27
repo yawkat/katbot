@@ -25,9 +25,10 @@ internal class TokenAuthenticatingRealm @Inject constructor(
         credentialsMatcher = AllowAllCredentialsMatcher()
     }
 
-    override fun doGetAuthenticationInfo(token: AuthenticationToken): AuthenticationInfo {
+    override fun doGetAuthenticationInfo(token: AuthenticationToken): AuthenticationInfo? {
         val user = tokenRegistry.getUserForToken((token as WebAuthenticationToken).token)
-                ?: throw AuthenticationException("Unknown token")
+        // TODO
+                ?: return null
         return IrcAuthenticationInfo(user)
     }
 

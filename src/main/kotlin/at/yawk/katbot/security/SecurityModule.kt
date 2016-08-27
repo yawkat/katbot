@@ -15,6 +15,7 @@ import org.skife.jdbi.v2.DBI
 class SecurityModule(val dbi: DBI) : ShiroModule() {
     override fun configureShiro() {
         bind(SecurityDao::class.java).toInstance(dbi.onDemand(SecurityDao::class.java))
+        expose(SecurityDao::class.java)
 
         bindRealm().to(IrcAuthorizingRealm::class.java)
         bindRealm().to(TokenAuthenticatingRealm::class.java)

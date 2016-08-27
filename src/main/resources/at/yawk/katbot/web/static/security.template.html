@@ -1,0 +1,74 @@
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at https://mozilla.org/MPL/2.0/.
+  -->
+
+<div class="security">
+    <!--
+    <div>
+        Permissions:
+        <ul>
+            <li ng-repeat="permission in permissions">{{permission}}</li>
+        </ul>
+    </div>
+    -->
+    <dl class="rolePermissions">
+        <dt ng-repeat-start="(role, rolePerms) in roles">{{role}}:</dt>
+        <dd ng-repeat-end>
+            <table>
+                <tbody>
+                <tr ng-repeat="permission in rolePerms">
+                    <td class="channel">
+                        <i ng-if="permission.channel == null">any</i>
+                        <span ng-if="permission.channel != null">{{permission.channel}}</span>
+                    </td>
+                    <td class="permission">{{permission.permission}}</td>
+                    <td class="remove" ng-click="removePermission(role, permission)">&#128473;</td>
+                </tr>
+                <tr>
+                    <td class="channel">
+                        <input type="text" placeholder="channel" value="" ng-model="rolePerms.$$addChannel" ng-init="">
+                    </td>
+                    <td class="permission">
+                        <select title="Permission" ng-model="rolePerms.$$addPermission">
+                            <option ng-repeat="permission in permissions" value="{{permission}}">{{permission}}</option>
+                        </select>
+                    </td>
+                    <td class="add"
+                        ng-click="addPermission(role, { channel: rolePerms.$$addChannel, permission: rolePerms.$$addPermission })">
+                        &#10133;
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </dd>
+    </dl>
+    <table class="userRoles">
+        <thead>
+        <tr>
+            <th width="30%">User</th>
+            <th width="70%">Roles</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="user in users">
+            <td class="user">{{user.username}}@{{user.host}}</td>
+            <td class="roles">
+                <div>
+                    <label ng-repeat="(role, _) in roles">
+                        <input type="checkbox" ng-model="user.$$roles[role]" ng-model-options="{ getterSetter: true }">
+                        {{role}}
+                    </label>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="user"><input placeholder="nick" type="text"
+                       ng-model="$$userAddNick">@<input placeholder="host" type="text" ng-model="$$userAddHost"></td>
+            <td class="add" ng-click="addUser($$userAddNick, $$userAddHost)">&#10133;</td>
+        </tr>
+        </tbody>
+    </table>
+</div>

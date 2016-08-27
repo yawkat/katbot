@@ -33,7 +33,9 @@ internal class IrcAuthorizingRealm @Inject constructor(val dao: SecurityDao) : A
     }
 
     override fun doGetAuthorizationInfo(principals: PrincipalCollection): AuthorizationInfo {
-        val info = SimpleAuthorizationInfo(dao.getRoles(principals.primaryPrincipal as IrcUserInfo))
+        var roles = dao.getRoles(principals.primaryPrincipal as IrcUserInfo)
+        if (roles.isEmpty()) roles = setOf(Security.DEFAULT_ROLE_NAME)
+        val info = SimpleAuthorizationInfo(roles)
         info.addObjectPermissions(info.roles.flatMap { dao.getPermissions(it) })
         return info
     }

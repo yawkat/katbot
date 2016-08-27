@@ -6,12 +6,14 @@
 
 package at.yawk.katbot.security
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import org.apache.shiro.authz.Permission
 import java.util.*
 
 /**
  * @author yawkat
  */
+@JsonFormat(shape = JsonFormat.Shape.STRING)
 enum class PermissionName(val id: String): Permission {
     ADD_FACTOIDS("addFactoids"),
     DELETE_FACTOIDS("deleteFactoids"),
