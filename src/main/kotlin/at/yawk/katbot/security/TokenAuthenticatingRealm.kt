@@ -27,7 +27,6 @@ internal class TokenAuthenticatingRealm @Inject constructor(
 
     override fun doGetAuthenticationInfo(token: AuthenticationToken): AuthenticationInfo? {
         val user = tokenRegistry.getUserForToken((token as WebAuthenticationToken).token)
-        // TODO
                 ?: return null
         return IrcAuthenticationInfo(user)
     }
