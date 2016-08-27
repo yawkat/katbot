@@ -126,11 +126,9 @@ katbotApp.component('security', {
             }
         };
 
-        /*
          $http.get('api/security/permissions').then(function (response) {
-         $scope.permissions = response.data;
+            $scope.permissions = response.data;
          });
-         */
         $http.get('api/security/roles').then(function (response) {
             $scope.roles = response.data;
             $http.get('api/security/users').then(function (response) {
