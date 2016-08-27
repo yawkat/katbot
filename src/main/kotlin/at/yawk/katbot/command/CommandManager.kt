@@ -17,6 +17,7 @@ import com.google.inject.ImplementedBy
 import org.apache.shiro.ShiroException
 import org.apache.shiro.mgt.SecurityManager
 import org.apache.shiro.subject.Subject
+import org.apache.shiro.util.ThreadContext
 import org.kitteh.irc.client.library.element.Channel
 import org.kitteh.irc.client.library.element.MessageReceiver
 import org.kitteh.irc.client.library.element.User
@@ -81,12 +82,11 @@ class CommandManager @Inject constructor(val eventBus: EventBus, val securityMan
             }
         }
 
-        val session = Security.getSubjectForUser(securityManager, actor)
-
+        val subject = ThreadContext.getSubject()!!
 
         try {
             if (parseAndFire(
-                    CommandContext(session, actor, location, userLocator, public),
+                    CommandContext(subject, actor, location, userLocator, public),
                     message,
                     parseWithoutPrefix = !public,
                     cause = null)) {

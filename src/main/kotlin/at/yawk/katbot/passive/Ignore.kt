@@ -10,19 +10,25 @@ import at.yawk.katbot.CancelEvent
 import at.yawk.katbot.Config
 import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
+import at.yawk.katbot.security.PermissionName
+import at.yawk.katbot.security.Security
+import org.apache.shiro.util.ThreadContext
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import javax.inject.Inject
 
 /**
  * @author yawkat
  */
-class Ignore @Inject constructor(val config: Config, val eventBus: EventBus) {
+class Ignore @Inject constructor(val eventBus: EventBus) {
     fun start() {
         eventBus.subscribe(this)
     }
 
     @Subscribe(priority = -1000)
     fun onPublicMessage(event: ChannelMessageEvent) {
-        if (config.ignore.contains(event.actor.nick)) throw CancelEvent
+        val permission = Security.createPermissionForChannelAndName(event.channel, PermissionName.TALK)
+        if (!ThreadContext.getSubject().isPermitted(permission)) {
+            throw CancelEvent
+        }
     }
 }

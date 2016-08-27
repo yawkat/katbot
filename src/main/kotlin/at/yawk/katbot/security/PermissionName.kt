@@ -23,6 +23,7 @@ enum class PermissionName(val id: String): Permission {
     EDIT_WOSCH("editWosch"),
     EDIT_MARKOV("editMarkov"),
     INVITE("invite"),
+    TALK("talk"),
 
     ADMIN("admin"),
     ;

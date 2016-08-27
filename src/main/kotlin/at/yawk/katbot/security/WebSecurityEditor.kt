@@ -68,7 +68,8 @@ class WebSecurityEditor @Inject internal constructor(
             txDao.createOrUpdateRole(role)
 
             // failsafe - disallow adding ADMIN permission
-            val removedPermissions = txDao.getPermissions(role) - permissions
+            val oldPermissions = txDao.getPermissions(role)
+            val removedPermissions = oldPermissions - permissions
             if (removedPermissions.any { it.permission == PermissionName.ADMIN }) {
                 throw BadRequestException("Don't do that")
             }
@@ -77,7 +78,7 @@ class WebSecurityEditor @Inject internal constructor(
             val batch = handle.prepareBatch("INSERT INTO role_permissions (role, server, channel, permission) VALUES (:role, :server, :channel, :permission)")
             for ((server, channel, permission) in permissions) {
                 // failsafe - disallow adding ADMIN permission
-                if (permission == PermissionName.ADMIN) {
+                if (permission == PermissionName.ADMIN && oldPermissions.none { it.permission == PermissionName.ADMIN }) {
                     throw BadRequestException("Don't do that")
                 }
                 batch.add(mapOf(

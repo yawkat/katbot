@@ -22,7 +22,6 @@ data class Config(
         val forums: Map<URI, ForumListener.ForumConfiguration>,
         val paste: at.yawk.paste.client.Config,
         val interactions: List<String>,
-        val ignore: Set<String>,
         val eventChannels: Set<String>,
         val docker: DockerCommand.DockerConfig,
         val web: WebConfig
