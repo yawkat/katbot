@@ -9,12 +9,18 @@
 
     <link rel="stylesheet" href="index.css">
 
-    <script src="/webjars/angular/1.5.8/angular.min.js"></script>
+    <script src="/webjars/angular/1.5.8/angular.js"></script>
+    <script src="/webjars/angular-cookies/1.5.8/angular-cookies.js"></script>
     <script src="index.js"></script>
 </head>
-<body>
+<body ng-controller="RootController">
+<ul id="navbar">
+    <li ng-click="section = KARMA" ng-class="section === KARMA ? 'selected' : ''">Karma</li>
+    <li ng-click="section = SECURITY" ng-class="section === SECURITY ? 'selected' : ''">Security</li>
+</ul>
 <div id="content">
-    <karma></karma>
+    <karma ng-if="section === KARMA"></karma>
+    <security ng-if="section === SECURITY"></security>
 </div>
 </body>
 </html>

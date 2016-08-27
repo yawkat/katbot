@@ -6,6 +6,8 @@
 
 package at.yawk.katbot
 
+import at.yawk.katbot.security.Security
+import org.apache.shiro.mgt.SecurityManager
 import org.kitteh.irc.client.library.element.User
 import org.kitteh.irc.client.library.event.channel.ChannelInviteEvent
 import javax.inject.Inject
@@ -13,7 +15,7 @@ import javax.inject.Inject
 /**
  * @author yawkat
  */
-class Invite @Inject constructor(val eventBus: EventBus, val roleManager: RoleManager) {
+class Invite @Inject constructor(val eventBus: EventBus, val securityManager: SecurityManager) {
     fun start() {
         eventBus.subscribe(this)
     }
@@ -23,7 +25,7 @@ class Invite @Inject constructor(val eventBus: EventBus, val roleManager: RoleMa
         val actor = event.actor
         if (event.target == event.client.nick
                 && actor is User
-                && roleManager.hasRole(actor, Role.INVITE)) {
+                && Security.getSubjectForUser(securityManager, actor).isPermitted("invite")) {
             event.channel.join()
         }
     }

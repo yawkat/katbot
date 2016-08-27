@@ -8,6 +8,7 @@ package at.yawk.katbot.action
 
 import at.yawk.katbot.*
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.security.PermissionName
 import com.google.common.annotations.VisibleForTesting
 import java.util.*
 import javax.inject.Inject
@@ -18,7 +19,7 @@ import javax.sql.DataSource
  */
 private val MAGIC_WORD = "wosch"
 
-class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSource, val roleManager: RoleManager) {
+class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSource) {
     private val substitutions = ArrayList<Substitution>()
 
     private fun sortSubstitutions() {
@@ -53,10 +54,7 @@ class Wosch @Inject constructor(val eventBus: EventBus, val dataSource: DataSour
 
         val action = command.line.parameters[1]
         if (command.public && (action == "+=" || action == "-=") && command.line.parameters.size > 2) {
-            if (!roleManager.hasRole(command.actor, Role.EDIT_WOSCH)) {
-                command.channel.sendMessageSafe("You aren't allowed to do that.")
-                throw CancelEvent
-            }
+            command.checkPermission(PermissionName.EDIT_WOSCH)
 
             val key = command.line.parameters[2]
 

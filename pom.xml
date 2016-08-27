@@ -18,11 +18,11 @@
         <jdbi.version>2.73</jdbi.version>
         <kicl.version>2.1.1</kicl.version>
         <logback.version>1.1.3</logback.version>
-        <guice.version>4.0</guice.version>
+        <guice.version>4.1.0</guice.version>
         <rome.version>1.5.1</rome.version>
         <httpclient.version>4.5.1</httpclient.version>
         <jsoup.version>1.8.2</jsoup.version>
-        <h2.version>1.4.190</h2.version>
+        <h2.version>1.4.192</h2.version>
         <flyway.version>3.2.1</flyway.version>
         <jtar.version>2.3</jtar.version>
         <resteasy.version>3.0.18.Final</resteasy.version>
@@ -32,6 +32,7 @@
         <findbugs.version>3.0.0</findbugs.version>
         <testng.version>6.9.8</testng.version>
         <mockito.version>2.0.2-beta</mockito.version>
+        <intellij-annotations.version>12.0</intellij-annotations.version>
     </properties>
 
     <repositories>
@@ -64,6 +65,11 @@
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.kitteh.irc</groupId>
             <artifactId>client-lib</artifactId>
             <version>${kicl.version}</version>
@@ -76,6 +82,11 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
+            <version>${guice.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-multibindings</artifactId>
             <version>${guice.version}</version>
         </dependency>
         <dependency>
@@ -139,14 +150,20 @@
             <version>${resteasy.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jackson2-provider</artifactId>
-            <version>${resteasy.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>angular</artifactId>
             <version>${angular.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>angular-cookies</artifactId>
+            <version>${angular.version}
+            </version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-guice</artifactId>
+            <version>1.2.6</version>
         </dependency>
 
         <dependency>
@@ -159,6 +176,12 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
             <version>${findbugs.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${intellij-annotations.version}</version>
             <scope>provided</scope>
         </dependency>
 

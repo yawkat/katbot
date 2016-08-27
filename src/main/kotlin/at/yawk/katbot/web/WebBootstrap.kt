@@ -8,6 +8,8 @@ package at.yawk.katbot.web
 
 import at.yawk.katbot.Config
 import at.yawk.katbot.log
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider
 import io.undertow.Undertow
 import io.undertow.server.handlers.PathHandler
 import io.undertow.server.handlers.resource.ClassPathResourceManager
@@ -18,18 +20,32 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import javax.ws.rs.Path
 import javax.ws.rs.core.Application
+import javax.ws.rs.ext.Provider
 
 /**
  * @author yawkat
  */
 @Singleton
-class WebBootstrap @Inject constructor(val config: Config) : WebProvider {
+class WebBootstrap @Inject internal constructor(
+        private val config: Config,
+        private val securityContainerRequestFilter: SecurityContainerRequestFilter,
+        private val objectMapper: ObjectMapper
+) : WebProvider {
     private val resources = HashSet<Any>()
     private var started = false
 
     fun start() {
         val application = object : Application() {
-            override fun getSingletons() = resources
+            override fun getClasses() = setOf(ErrorHandlers.ShiroExceptionMapper::class.java)
+
+            override fun getSingletons(): Set<Any> {
+                return resources + securityContainerRequestFilter +
+                        @Provider object : JacksonJsonProvider() {
+                            init {
+                                setMapper(objectMapper)
+                            }
+                        }
+            }
         }
 
         val server = UndertowJaxrsServer()

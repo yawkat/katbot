@@ -11,8 +11,10 @@ import at.yawk.katbot.action.*
 import at.yawk.katbot.command.CommandManager
 import at.yawk.katbot.markov.Markov
 import at.yawk.katbot.passive.*
+import at.yawk.katbot.security.SecurityModule
 import at.yawk.katbot.web.WebBootstrap
 import at.yawk.katbot.web.WebProvider
+import at.yawk.katbot.security.WebSecurityEditor
 import at.yawk.paste.client.PasteClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -25,6 +27,7 @@ import com.google.inject.Module
 import com.google.inject.binder.AnnotatedBindingBuilder
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.shiro.guice.ShiroModule
 import org.flywaydb.core.Flyway
 import org.h2.jdbcx.JdbcDataSource
 import org.kitteh.irc.client.library.Client
@@ -62,6 +65,8 @@ fun main(args: Array<String>) {
     flyway.dataSource = dataSource
     flyway.migrate()
 
+    val dbi = DBI(dataSource)
+
     val client = connect(config)
 
     val eventBus = EventBus()
@@ -70,12 +75,12 @@ fun main(args: Array<String>) {
         fun handle(o: Any) = eventBus.post(o)
     })
 
-    val injector = Guice.createInjector(Module {
+    val injector = Guice.createInjector(SecurityModule(dbi), Module {
         it.bind<ObjectMapper>().toInstance(jsonMapper)
         it.bind<EventBus>().toInstance(eventBus)
         it.bind<Config>().toInstance(config)
         it.bind<DataSource>().toInstance(dataSource)
-        it.bind<DBI>().toInstance(DBI(dataSource))
+        it.bind<DBI>().toInstance(dbi)
         it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
         it.bind<HttpClient>().toInstance(HttpClientBuilder.create().disableCookieManagement().build())
         it.bind<IrcProvider>().toInstance(object : IrcProvider {
@@ -107,7 +112,6 @@ fun main(args: Array<String>) {
     injector.getInstance<Interact>().start()
     injector.getInstance<Ignore>().start()
     injector.getInstance<UrbanDictionary>().start()
-    injector.getInstance<RoleManagerImpl>().start()
     injector.getInstance<Fortune>().start()
     injector.getInstance<Seen>().start()
     injector.getInstance<Cip>().start()
@@ -117,6 +121,8 @@ fun main(args: Array<String>) {
     injector.getInstance<Wosch>().start()
     injector.getInstance<Markov>().start()
     injector.getInstance<Invite>().start()
+    injector.getInstance<WebSecurityEditor>().start()
+
     injector.getInstance<WebBootstrap>().start()
     injector.getInstance<DockerCommand>().start()
 }
