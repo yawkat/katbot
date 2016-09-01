@@ -7,6 +7,7 @@
 package at.yawk.katbot.web
 
 import at.yawk.katbot.security.TokenAuthenticatingRealm
+import org.apache.shiro.authc.AuthenticationException
 import org.apache.shiro.mgt.SecurityManager
 import org.apache.shiro.subject.Subject
 import org.jboss.resteasy.spi.ResteasyProviderFactory
@@ -30,7 +31,11 @@ internal class SecurityContainerRequestFilter @Inject constructor(
         val header: String? = requestContext.getHeaderString("Authorization")
         if (header != null && header.startsWith("Token ")) {
             val token = header.substring("Token ".length)
-            subject.login(TokenAuthenticatingRealm.WebAuthenticationToken(token))
+            try {
+                subject.login(TokenAuthenticatingRealm.WebAuthenticationToken(token))
+            } catch (e: AuthenticationException) {
+                // ignore
+            }
         }
 
         ResteasyProviderFactory.pushContext(Subject::class.java, subject)
