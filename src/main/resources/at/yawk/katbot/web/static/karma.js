@@ -48,6 +48,7 @@ katbotApp.component('karma', {
                                 x: Date.parse(entry.timestamp),
                                 y: accumulated,
                                 actor: entry.actor,
+                                comment: entry.comment,
                                 delta: entry.delta
                             })
                         }
