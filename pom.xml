@@ -33,6 +33,9 @@
         <testng.version>6.9.8</testng.version>
         <mockito.version>2.0.2-beta</mockito.version>
         <intellij-annotations.version>12.0</intellij-annotations.version>
+        <shiro.version>1.2.6</shiro.version>
+        <highcharts.version>4.2.6</highcharts.version>
+        <highcharts-ng.version>0.0.12</highcharts-ng.version>
     </properties>
 
     <repositories>
@@ -157,13 +160,27 @@
         <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>angular-cookies</artifactId>
-            <version>${angular.version}
-            </version>
+            <version>${angular.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>angular-sanitize</artifactId>
+            <version>${angular.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>highcharts</artifactId>
+            <version>${highcharts.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>highcharts-ng</artifactId>
+            <version>${highcharts-ng.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-guice</artifactId>
-            <version>1.2.6</version>
+            <version>${shiro.version}</version>
         </dependency>
 
         <dependency>

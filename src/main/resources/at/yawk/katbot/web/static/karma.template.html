@@ -10,18 +10,14 @@
         <div><input ng-model="search" placeholder="Search…"></div>
         <button ng-click="page = page + 1" ng-hide="entries.length < 50">Next →</button>
     </div>
-    <table>
-        <thead>
-        <tr>
-            <th width="50%">Name</th>
-            <th width="50%">Karma</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="entry in entries">
-            <td>{{entry.canonicalName}}</td>
-            <td>{{entry.karma}}</td>
-        </tr>
-        </tbody>
-    </table>
+    <ol>
+        <li ng-repeat="entry in entries" ng-click="entry.$$history = !entry.$$history">
+            <div>
+                <div class="karmaName">{{entry.canonicalName}}</div>
+                <div class="karmaValue">{{entry.karma}}</div>
+            </div>
+            <highchart ng-click="$event.stopPropagation()" config="chartConfigBuilder(entry.canonicalName)"
+                       ng-if="entry.$$history"></highchart>
+        </li>
+    </ol>
 </div>
