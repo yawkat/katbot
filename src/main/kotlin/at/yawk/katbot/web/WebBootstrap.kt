@@ -7,7 +7,6 @@
 package at.yawk.katbot.web
 
 import at.yawk.katbot.Config
-import at.yawk.katbot.log
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider
 import io.undertow.Undertow
@@ -15,6 +14,7 @@ import io.undertow.server.handlers.PathHandler
 import io.undertow.server.handlers.resource.ClassPathResourceManager
 import io.undertow.server.handlers.resource.ResourceHandler
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer
+import org.slf4j.LoggerFactory
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,6 +25,8 @@ import javax.ws.rs.ext.Provider
 /**
  * @author yawkat
  */
+private val log = LoggerFactory.getLogger(WebBootstrap::class.java)
+
 @Singleton
 class WebBootstrap @Inject internal constructor(
         private val config: Config,

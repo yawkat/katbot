@@ -7,19 +7,36 @@
 package at.yawk.katbot
 
 import at.yawk.docker.DockerClient
-import at.yawk.katbot.action.*
+import at.yawk.katbot.action.Cip
+import at.yawk.katbot.action.Decide
+import at.yawk.katbot.action.DockerCommand
+import at.yawk.katbot.action.Factoid
+import at.yawk.katbot.action.Fortune
+import at.yawk.katbot.action.Interact
+import at.yawk.katbot.action.Karma
+import at.yawk.katbot.action.Restrict
+import at.yawk.katbot.action.Seen
+import at.yawk.katbot.action.Sql
+import at.yawk.katbot.action.Uptime
+import at.yawk.katbot.action.UrbanDictionary
+import at.yawk.katbot.action.Wosch
+import at.yawk.katbot.action.closed
 import at.yawk.katbot.command.CommandManager
 import at.yawk.katbot.markov.Markov
-import at.yawk.katbot.passive.*
+import at.yawk.katbot.passive.EventManager
+import at.yawk.katbot.passive.ForumListener
+import at.yawk.katbot.passive.Ignore
+import at.yawk.katbot.passive.RssFeedListener
+import at.yawk.katbot.passive.UrlTitleLoader
 import at.yawk.katbot.security.Security
 import at.yawk.katbot.security.SecurityModule
 import at.yawk.katbot.security.WebSecurityEditor
 import at.yawk.katbot.web.WebBootstrap
 import at.yawk.paste.client.PasteClient
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.inject.Binder
 import com.google.inject.Guice
 import com.google.inject.Injector
@@ -47,16 +64,18 @@ import javax.sql.DataSource
 internal inline fun <reified T : Any> Injector.getInstance(): T = getInstance(T::class.java)
 internal inline fun <reified T : Any> Binder.bind(): AnnotatedBindingBuilder<T> = bind(T::class.java)
 
-val log = LoggerFactory.getLogger("at.yawk.katbot.Main")
+private val log = LoggerFactory.getLogger("at.yawk.katbot.Main")
 
 /**
  * @author yawkat
  */
 fun main(args: Array<String>) {
     val jsonMapper = ObjectMapper()
-            .registerKotlinModule()
+            .findAndRegisterModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     val yamlMapper = ObjectMapper(YAMLFactory())
-            .registerKotlinModule()
+            .findAndRegisterModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
     val config: Config = Files.newInputStream(Paths.get("config.yml"))
             .closed { yamlMapper.readValue<Config>(it) }

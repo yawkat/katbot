@@ -6,10 +6,16 @@
 
 package at.yawk.katbot.action
 
-import at.yawk.katbot.*
+import at.yawk.katbot.CancelEvent
+import at.yawk.katbot.EventBus
+import at.yawk.katbot.MessageThrottle
+import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
 import at.yawk.katbot.security.PermissionName
+import at.yawk.katbot.sendMessageSafe
 import at.yawk.katbot.web.WebProvider
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import org.skife.jdbi.v2.DBI
@@ -17,6 +23,7 @@ import org.skife.jdbi.v2.StatementContext
 import org.skife.jdbi.v2.sqlobject.Bind
 import org.skife.jdbi.v2.sqlobject.SqlQuery
 import org.skife.jdbi.v2.sqlobject.SqlUpdate
+import org.skife.jdbi.v2.sqlobject.customizers.Mapper
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper
 import org.skife.jdbi.v2.tweak.ResultSetMapper
 import org.slf4j.LoggerFactory
@@ -24,10 +31,15 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.sql.ResultSet
 import java.time.Clock
-import java.util.*
+import java.time.Instant
+import java.util.HashMap
 import java.util.regex.Pattern
 import javax.inject.Inject
-import javax.ws.rs.*
+import javax.ws.rs.DefaultValue
+import javax.ws.rs.GET
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
+import javax.ws.rs.QueryParam
 
 internal const val SUBJECT_PATTERN = "([\\w\\-` öäü\\[\\]]*)"
 internal const val NICK_PATTERN = "([\\w\\-`öäü\\[\\]]+)"
@@ -40,7 +52,7 @@ class Karma @Inject constructor(
         val eventBus: EventBus,
         val objectMapper: ObjectMapper,
         val web: WebProvider,
-        dbi: DBI
+        val dbi: DBI
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(Karma::class.java)
@@ -49,14 +61,14 @@ class Karma @Inject constructor(
         private val VIEW_PATTERN = Pattern.compile("karma(p?) $SUBJECT_PATTERN", Pattern.CASE_INSENSITIVE)
 
         private val CLOCK = Clock.systemUTC()
+
+        fun canonicalizeSubjectName(subject: String): String {
+            return subject.toLowerCase()
+        }
     }
 
     private val dao = dbi.onDemand(KarmaDao::class.java)
     private val userThrottles: MutableMap<String, MessageThrottle> = hashMapOf()
-
-    private fun canonicalizeSubjectName(subject: String): String {
-        return subject.toLowerCase()
-    }
 
     fun start() {
         // karma.json migration
@@ -65,7 +77,13 @@ class Karma @Inject constructor(
             val node = Files.newInputStream(karmaFilePath).use { objectMapper.readTree(it) }
             val karma = node.get("karma") as ObjectNode
             karma.fields().forEach { entry ->
-                dao.tryCreateKarma(canonicalizeSubjectName(entry.key), entry.value.longValue())
+                addKarma(
+                        canonicalizeSubjectName(entry.key),
+                        entry.value.longValue(),
+                        actor = null,
+                        comment = "Imported from karma.json",
+                        requireInsert = true
+                )
             }
             Files.move(karmaFilePath, Paths.get("karma.old.json"))
         }
@@ -94,9 +112,7 @@ class Karma @Inject constructor(
                 }
 
                 val delta = if (manipulateMatcher.group(2) == "++") 1L else -1L
-                if (dao.tryAddKarma(canonicalizedSubject, delta) == 0) {
-                    dao.tryCreateKarma(canonicalizedSubject, delta)
-                }
+                addKarma(canonicalizedSubject, delta, actor = event.actor.nick + '@' + event.actor.host)
                 val newKarma = dao.getKarma(canonicalizedSubject)
 
                 log.info("{} has changed the karma level for {} to {}",
@@ -154,8 +170,23 @@ class Karma @Inject constructor(
         )
     }
 
+    @GET
+    @Path("/{name}/history")
+    fun getHistoryForName(@PathParam("name") name: String): List<HistoryEntry> =
+            dao.getKarmaLog(canonicalizeSubjectName(name))
+
     private fun getKarma(canonicalizedSubject: String): Long =
             dao.getKarma(canonicalizedSubject) ?: 0L
+
+    private fun addKarma(canonicalizedSubject: String, delta: Long, actor: String?, comment: String? = null, requireInsert: Boolean = false) {
+        dbi.inTransaction { handle, tx ->
+            val txDao = handle.attach(KarmaDao::class.java)
+            if (requireInsert || txDao.tryAddKarma(canonicalizedSubject, delta) == 0) {
+                txDao.tryCreateKarma(canonicalizedSubject, delta)
+            }
+            txDao.logKarma(canonicalizedSubject, delta, actor, comment)
+        }
+    }
 }
 
 @RegisterMapper(KarmaDao.EntryMapper::class)
@@ -169,6 +200,13 @@ private interface KarmaDao {
     @SqlUpdate("insert into karma (canonicalName, karma) values (:canonicalName, :karma)")
     fun tryCreateKarma(@Bind("canonicalName") canonicalName: String, @Bind("karma") karma: Long)
 
+    @SqlUpdate("INSERT INTO karma_history (canonicalName, delta, actor, comment) VALUES (:canonicalName, :delta, :actor, :comment)")
+    fun logKarma(@Bind("canonicalName") canonicalName: String, @Bind("delta") delta: Long, @Bind("actor") actor: String?, @Bind("comment") comment: String?)
+
+    @Mapper(HistoryEntryMapper::class)
+    @SqlQuery("SELECT timestamp, delta, actor, comment FROM karma_history WHERE canonicalName = :canonicalName")
+    fun getKarmaLog(@Bind("canonicalName") canonicalName: String): List<HistoryEntry>
+
     @SqlQuery("select canonicalName, karma from karma where karma <> 0 order by karma desc limit 50 offset :offset")
     fun searchKarma(@Bind("offset") offset: Int): List<Entry>
 
@@ -179,9 +217,22 @@ private interface KarmaDao {
         override fun map(index: Int, r: ResultSet, ctx: StatementContext) =
                 Entry(r.getString("canonicalName"), r.getLong("karma"))
     }
+
+    class HistoryEntryMapper : ResultSetMapper<HistoryEntry> {
+        override fun map(index: Int, r: ResultSet, ctx: StatementContext) =
+                HistoryEntry(r.getTimestamp("timestamp").toInstant(), r.getLong("delta"), r.getString("actor"), r.getString("comment"))
+    }
 }
 
 data class Entry(val canonicalName: String, val karma: Long)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class HistoryEntry(
+        @JsonFormat(shape = JsonFormat.Shape.STRING) val timestamp: Instant,
+        val delta: Long,
+        val actor: String?,
+        val comment: String?
+)
 
 inline fun <C : AutoCloseable, T> C.closed(arg: (C) -> T): T {
     try {
