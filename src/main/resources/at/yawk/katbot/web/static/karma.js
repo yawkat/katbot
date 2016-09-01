@@ -65,15 +65,21 @@ katbotApp.component('karma', {
                                     var html = "";
                                     html += "Karma: <b>" + this.y + "</b>";
 
-                                    html += "<br>Actor: ";
                                     var actor = this.actor;
-                                    var hostIndex = actor.indexOf('@');
-                                    if (hostIndex != -1) {
-                                        var nick = $sanitize(actor.substring(0, hostIndex));
-                                        var host = $sanitize(actor.substring(hostIndex));
-                                        html += "<b>" + nick + "</b><span class='userHost'>" + host + "</span>";
-                                    } else {
-                                        html += "<b>" + $sanitize(actor) + "</b>";
+                                    if (actor) {
+                                        html += "<br>Actor: ";
+                                        var hostIndex = actor.indexOf('@');
+                                        if (hostIndex != -1) {
+                                            var nick = $sanitize(actor.substring(0, hostIndex));
+                                            var host = $sanitize(actor.substring(hostIndex));
+                                            html += "<b>" + nick + "</b><span class='userHost'>" + host + "</span>";
+                                        } else {
+                                            html += "<b>" + $sanitize(actor) + "</b>";
+                                        }
+                                    }
+
+                                    if (this.comment) {
+                                        html += "<br>Comment: <b>" + $sanitize(this.comment) + "</b>"
                                     }
 
                                     html += "<br>Delta: <b>" + this.delta + "</b>";
