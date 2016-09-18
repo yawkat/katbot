@@ -33,7 +33,13 @@ katbotApp.component('security', {
 
         $scope.removePermission = function (role, permission) {
             var newPermissions = angular.copy($scope.roles[role]);
-            newPermissions.splice(newPermissions.indexOf(permission), 1);
+            for (var i = 0; i < newPermissions.length; i++) {
+                var here = newPermissions[i];
+                if (here.channel === permission.channel && here.permission == channel.permission) {
+                    newPermissions.splice(i, 1);
+                    break;
+                }
+            }
             $http.put('api/security/roles/' + role, newPermissions).then(function () {
                 $scope.roles[role] = newPermissions;
             });
