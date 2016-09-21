@@ -39,7 +39,7 @@ class ForumListener @Inject constructor(
         executor.scheduleWithFixedDelay({
             try {
                 pollAll()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 log.error("Failed to poll forums", e)
             }
         }, 0, 1, TimeUnit.MINUTES)

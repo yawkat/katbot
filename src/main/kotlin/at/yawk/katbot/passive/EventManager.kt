@@ -54,7 +54,7 @@ class EventManager @Inject constructor(
         executor.scheduleAtFixedRate({
             try {
                 updateEvents()
-            } catch(e: Exception) {
+            } catch(e: Throwable) {
                 log.error("Failed to update events", e)
             }
         }, 0, 5, TimeUnit.MINUTES)

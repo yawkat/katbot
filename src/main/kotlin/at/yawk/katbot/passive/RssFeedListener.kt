@@ -84,7 +84,7 @@ class RssFeedListener @Inject constructor(
         executor.scheduleWithFixedDelay({
             try {
                 poll()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 log.error("Failed to poll RSS feeds", e)
             }
         }, 0, 1, TimeUnit.MINUTES)
