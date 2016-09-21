@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.inject.Binder
 import com.google.inject.Guice
 import com.google.inject.Injector
@@ -99,7 +100,11 @@ fun main(args: Array<String>) {
         it.bind<Config>().toInstance(config)
         it.bind<DataSource>().toInstance(dataSource)
         it.bind<DBI>().toInstance(dbi)
-        it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor())
+        it.bind<ScheduledExecutorService>().toInstance(Executors.newSingleThreadScheduledExecutor(
+                ThreadFactoryBuilder()
+                        .setNameFormat("katbot-scheduler-%s")
+                        .build()
+        ))
         it.bind<HttpClient>().toInstance(HttpClientBuilder.create().disableCookieManagement().build())
         it.bind<IrcProvider>().toInstance(object : IrcProvider {
             override fun findChannels(channelNames: Collection<String>): List<MessageReceiver> {
