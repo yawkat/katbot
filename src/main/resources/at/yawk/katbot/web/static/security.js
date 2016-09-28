@@ -35,7 +35,7 @@ katbotApp.component('security', {
             var newPermissions = angular.copy($scope.roles[role]);
             for (var i = 0; i < newPermissions.length; i++) {
                 var here = newPermissions[i];
-                if (here.channel === permission.channel && here.permission == channel.permission) {
+                if (here.channel === permission.channel && here.permission == permission.permission) {
                     newPermissions.splice(i, 1);
                     break;
                 }
