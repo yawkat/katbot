@@ -56,6 +56,7 @@ class Cip @Inject constructor(
             val state = try {
                 loadState()
             } catch(e: Exception) {
+                log.warn("Could not load cipmap", e)
                 command.channel.sendMessageSafe("$nick, could not fetch data")
                 return
             }
