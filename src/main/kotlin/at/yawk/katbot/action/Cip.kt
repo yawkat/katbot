@@ -19,7 +19,7 @@ import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.HashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -85,9 +85,18 @@ class Cip @Inject constructor(
      * @return A map of `pc id -> state`
      */
     fun loadState(): Map<String, ComputerState> {
-        var dataJs = httpClient.execute(HttpGet("http://${System.getProperty("cipHost")}/?callback=x")).entity.content.use {
-            it.reader(StandardCharsets.UTF_8).buffered().readText()
-        }
+        // i really hate my life right now.
+        // the old code (which just used java) broke with 'Protocol family unavailable' on a server where everything
+        // except java works with ipv6. Apparently, to detect ipv6 support, openjdk reads /proc/net/if_inet6 which
+        // under the grsecurity kernel of the server is not readable to users. Then hotspot yields a beautifully
+        // undescriptive error message that leads to hours of debugging.
+
+        // because I don't want to reboot this server at the moment, the grsecurity flag stays and I just use curl
+        // which does not break.
+
+        val process = ProcessBuilder("curl", "http://${System.getProperty("cipHost")}/?callback=x").start()
+        var dataJs = String(process.inputStream.readBytes())
+        if (process.waitFor() != 0) throw Exception("return status != 0")
 
         // x({..data..})
         dataJs = dataJs.substring(2, dataJs.length - 1)
