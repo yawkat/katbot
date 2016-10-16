@@ -28,11 +28,11 @@ import at.yawk.katbot.passive.ForumListener
 import at.yawk.katbot.passive.Ignore
 import at.yawk.katbot.passive.RssFeedListener
 import at.yawk.katbot.passive.UrlTitleLoader
+import at.yawk.katbot.paste.PasteProvider
 import at.yawk.katbot.security.Security
 import at.yawk.katbot.security.SecurityModule
 import at.yawk.katbot.security.WebSecurityEditor
 import at.yawk.katbot.web.WebBootstrap
-import at.yawk.paste.client.PasteClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -119,7 +119,6 @@ fun main(args: Array<String>) {
                 }.filterNotNull()
             }
         })
-        it.bind<PasteClient>().toInstance(PasteClient(config.paste, jsonMapper))
         it.bind<DockerClient>().toInstance(DockerClient.builder().url(config.docker.url).build())
     })
 
@@ -171,6 +170,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Markov>().start()
     injector.getInstance<Invite>().start()
     injector.getInstance<WebSecurityEditor>().start()
+    injector.getInstance<PasteProvider>().start()
 
     injector.getInstance<WebBootstrap>().start()
     injector.getInstance<DockerCommand>().start()

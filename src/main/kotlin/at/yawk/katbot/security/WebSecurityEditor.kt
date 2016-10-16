@@ -16,7 +16,12 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import org.apache.shiro.subject.Subject
 import org.skife.jdbi.v2.DBI
 import javax.inject.Inject
-import javax.ws.rs.*
+import javax.ws.rs.BadRequestException
+import javax.ws.rs.DELETE
+import javax.ws.rs.GET
+import javax.ws.rs.PUT
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
 import javax.ws.rs.core.Context
 
 /**
@@ -40,9 +45,7 @@ class WebSecurityEditor @Inject internal constructor(
     fun command(command: Command) {
         if (command.line.messageIs("web")) {
             val token = tokenRegistry.createToken(Security.createUserInfo(command.actor))
-            var url = config.web.externalHost
-            if (!url.endsWith("/")) url += "/"
-            url += "#auth:$token"
+            val url = config.web.externalHostWithTrailingSlash + "#auth:$token"
             command.actor.sendNotice(url)
             throw CancelEvent
         }

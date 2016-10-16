@@ -10,6 +10,7 @@ import at.yawk.katbot.Config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider
 import io.undertow.Undertow
+import io.undertow.server.HttpHandler
 import io.undertow.server.handlers.PathHandler
 import io.undertow.server.handlers.resource.ClassPathResourceManager
 import io.undertow.server.handlers.resource.ResourceHandler
@@ -33,7 +34,13 @@ class WebBootstrap @Inject internal constructor(
         private val securityContainerRequestFilter: SecurityContainerRequestFilter,
         private val objectMapper: ObjectMapper
 ) : WebProvider {
+    private val classLoader = WebBootstrap::class.java.classLoader
+
     private val resources = HashSet<Any>()
+    private val prefixes = mutableMapOf<String, HttpHandler>(
+            "/" to ResourceHandler(ClassPathResourceManager(classLoader, "at/yawk/katbot/web/static")),
+            "/webjars" to ResourceHandler(ClassPathResourceManager(classLoader, "META-INF/resources/webjars"))
+    )
     private var started = false
 
     fun start() {
@@ -55,9 +62,9 @@ class WebBootstrap @Inject internal constructor(
         val rootField = server.javaClass.getDeclaredField("root")
         rootField.isAccessible = true
         val root = rootField.get(server) as PathHandler
-        val classLoader = WebBootstrap::class.java.classLoader
-        root.addPrefixPath("/", ResourceHandler(ClassPathResourceManager(classLoader, "at/yawk/katbot/web/static")))
-        root.addPrefixPath("/webjars", ResourceHandler(ClassPathResourceManager(classLoader, "META-INF/resources/webjars")))
+        for ((prefix, handler) in prefixes) {
+            root.addPrefixPath(prefix, handler)
+        }
 
         server.deploy(application, "/api")
                 .start(Undertow.builder().addHttpListener(config.web.port, config.web.bindHost))
@@ -69,5 +76,9 @@ class WebBootstrap @Inject internal constructor(
             log.warn("Missing @Path annotation on ${resource.javaClass.name}")
         }
         resources.add(resource)
+    }
+
+    override fun addRootHandler(prefix: String, httpHandler: HttpHandler) {
+        prefixes.put(prefix, httpHandler)
     }
 }

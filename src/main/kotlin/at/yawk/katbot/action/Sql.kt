@@ -10,13 +10,13 @@ import at.yawk.katbot.CancelEvent
 import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.paste.Paste
+import at.yawk.katbot.paste.PasteProvider
 import at.yawk.katbot.security.PermissionName
 import at.yawk.katbot.sendMessageSafe
-import at.yawk.paste.client.PasteClient
-import at.yawk.paste.model.TextPasteData
 import java.sql.ResultSet
 import java.sql.SQLException
-import java.util.*
+import java.util.ArrayList
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.DataSource
@@ -28,7 +28,7 @@ import javax.sql.DataSource
 class Sql @Inject constructor(
         val eventBus: EventBus,
         val dataSource: DataSource,
-        val pasteClient: PasteClient
+        val pasteClient: PasteProvider
 ) {
     fun start() {
         eventBus.subscribe(this)
@@ -66,10 +66,8 @@ class Sql @Inject constructor(
             } else if (results.size <= 2) {
                 results.forEach { command.channel.sendMessageSafe(it) }
             } else {
-                val data = TextPasteData()
-                data.text = results.joinToString("\n")
-                val uri = pasteClient.save(data)
-                command.channel.sendMessageSafe(uri)
+                val uri = pasteClient.createPaste(Paste(Paste.Type.TEXT, results.joinToString("\n")))
+                command.channel.sendMessageSafe(uri.toASCIIString())
             }
             throw CancelEvent
         }

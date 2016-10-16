@@ -13,4 +13,7 @@ data class WebConfig(
         val bindHost: String,
         val port: Int,
         val externalHost: String
-)
+) {
+    val externalHostWithTrailingSlash: String
+        get() = if (externalHost.endsWith('/')) externalHost else externalHost + '/'
+}

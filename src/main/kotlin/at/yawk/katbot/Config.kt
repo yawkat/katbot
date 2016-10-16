@@ -20,7 +20,6 @@ data class Config(
         val server: Config.Server,
         val feeds: Map<URI, RssFeedListener.FeedConfiguration>,
         val forums: Map<URI, ForumListener.ForumConfiguration>,
-        val paste: at.yawk.paste.client.Config,
         val interactions: List<String>,
         val eventChannels: Set<String>,
         val docker: DockerCommand.DockerConfig,

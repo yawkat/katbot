@@ -7,6 +7,7 @@
 package at.yawk.katbot.web
 
 import com.google.inject.ImplementedBy
+import io.undertow.server.HttpHandler
 
 /**
  * @author yawkat
@@ -14,4 +15,6 @@ import com.google.inject.ImplementedBy
 @ImplementedBy(WebBootstrap::class)
 interface WebProvider {
     fun addResource(resource: Any)
+
+    fun addRootHandler(prefix: String, httpHandler: HttpHandler)
 }

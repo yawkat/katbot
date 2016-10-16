@@ -4,16 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package at.yawk.katbot
-
-import at.yawk.katbot.paste.LocalUrlShortener
-import com.google.inject.ImplementedBy
-import java.net.URI
+package at.yawk.katbot.paste
 
 /**
  * @author yawkat
  */
-@ImplementedBy(LocalUrlShortener::class)
-interface UrlShortener {
-    fun shorten(uri: URI): URI
+data class Paste(val type: Type, val data: String) {
+    enum class Type {
+        URL,
+        TEXT,
+    }
 }

@@ -16,9 +16,9 @@ import at.yawk.katbot.Config
 import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.paste.Paste
+import at.yawk.katbot.paste.PasteProvider
 import at.yawk.katbot.sendMessageSafe
-import at.yawk.paste.client.PasteClient
-import at.yawk.paste.model.TextPasteData
 import io.netty.buffer.Unpooled
 import org.kamranzafar.jtar.TarEntry
 import org.kamranzafar.jtar.TarHeader
@@ -48,7 +48,7 @@ fun isPrintableAsciiChar(it: Char) = it >= ' ' && it <= '~'
 class DockerCommand @Inject constructor(
         val eventBus: EventBus,
         val dockerClient: DockerClient,
-        val pasteClient: PasteClient,
+        val pasteProvider: PasteProvider,
         val config: Config
 ) {
     companion object {
@@ -84,9 +84,8 @@ class DockerCommand @Inject constructor(
             if (!output.isEmpty()) {
                 // max 2 lines raw, otherwise pastebin
                 if (output.count { it == '\n' } >= 2) {
-                    val data = TextPasteData()
-                    data.text = output
-                    command.channel.sendMessageSafe(pasteClient.save(data))
+                    val pasteUri = pasteProvider.createPaste(Paste(Paste.Type.TEXT, output))
+                    command.channel.sendMessageSafe(pasteUri.toASCIIString())
                 } else {
                     output.split('\n').forEach { command.channel.sendMessageSafe(it) }
                 }
