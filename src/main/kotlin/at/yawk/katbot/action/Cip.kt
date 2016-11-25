@@ -29,7 +29,6 @@ import javax.inject.Singleton
 @Singleton
 class Cip @Inject constructor(
         val objectMapper: ObjectMapper,
-        val httpClient: HttpClient,
         val eventBus: EventBus
 ) {
     companion object {
@@ -85,6 +84,11 @@ class Cip @Inject constructor(
      * @return A map of `pc id -> state`
      */
     fun loadState(): Map<String, ComputerState> {
+        val dataJs = fetchFromProxy("server/getData")
+        return objectMapper.readValue(dataJs, object : TypeReference<Map<String, ComputerState>>() {})
+    }
+
+    private fun fetchFromProxy(path: String): String {
         // i really hate my life right now.
         // the old code (which just used java) broke with 'Protocol family unavailable' on a server where everything
         // except java works with ipv6. Apparently, to detect ipv6 support, openjdk reads /proc/net/if_inet6 which
@@ -94,14 +98,10 @@ class Cip @Inject constructor(
         // because I don't want to reboot this server at the moment, the grsecurity flag stays and I just use curl
         // which does not break.
 
-        val process = ProcessBuilder("curl", "http://${System.getProperty("cipHost")}/?callback=x").start()
-        var dataJs = String(process.inputStream.readBytes())
+        val process = ProcessBuilder("curl", "--insecure", "https://${System.getProperty("cipHost")}/$path").start()
+        val dataJs = String(process.inputStream.readBytes())
         if (process.waitFor() != 0) throw Exception("return status != 0")
-
-        // x({..data..})
-        dataJs = dataJs.substring(2, dataJs.length - 1)
-
-        return objectMapper.readValue(dataJs, object : TypeReference<Map<String, ComputerState>>() {})
+        return dataJs
     }
 
     data class ComputerState(
@@ -119,9 +119,7 @@ class Cip @Inject constructor(
      * @return A map of `pc id -> room id`
      */
     fun loadMap(): Map<String, String> {
-        var mapJs = httpClient.execute(HttpGet("http://cipmap.t-animal.de/js/map.js")).entity.content.use {
-            it.reader(StandardCharsets.UTF_8).buffered().readText()
-        }
+        var mapJs = fetchFromProxy("js/map.js")
 
         // leading assignment
         mapJs = mapJs.replace("map = ", "")
