@@ -96,7 +96,7 @@ class GuildWars2Item @Inject constructor(
         if (candidates.size > 1) {
             val others = candidates.subList(1, Math.min(candidates.size, 100))
             message.append(" | Other matches: ")
-                    .append(pasteProvider.createPaste(Paste(Paste.Type.TEXT, others.joinToString("\n"))))
+                    .append(pasteProvider.createPaste(Paste(Paste.Type.TEXT, others.joinToString("\n") { it.name })))
         }
         return message.toString()
     }
@@ -105,12 +105,12 @@ class GuildWars2Item @Inject constructor(
         if (price == 0) return "0"
 
         var s = ""
-        val copper = price % 100
-        if (copper != 0) s += "${copper}c"
-        val silver = (price / 100) % 100
-        if (silver != 0) s += "${silver}s"
         val gold = price / 10000
         if (gold != 0) s += "${gold}g"
+        val silver = (price / 100) % 100
+        if (silver != 0) s += "${silver}s"
+        val copper = price % 100
+        if (copper != 0) s += "${copper}c"
         return s
     }
 
