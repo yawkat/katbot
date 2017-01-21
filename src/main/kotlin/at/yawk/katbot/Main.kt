@@ -12,6 +12,7 @@ import at.yawk.katbot.action.Decide
 import at.yawk.katbot.action.DockerCommand
 import at.yawk.katbot.action.Factoid
 import at.yawk.katbot.action.Fortune
+import at.yawk.katbot.action.GuildWars2Item
 import at.yawk.katbot.action.Interact
 import at.yawk.katbot.action.Karma
 import at.yawk.katbot.action.Restrict
@@ -168,6 +169,7 @@ fun main(args: Array<String>) {
     injector.getInstance<UrlTitleLoader>().start()
     injector.getInstance<Wosch>().start()
     injector.getInstance<Markov>().start()
+    injector.getInstance<GuildWars2Item>().start()
     injector.getInstance<Invite>().start()
     injector.getInstance<WebSecurityEditor>().start()
     injector.getInstance<PasteProvider>().start()

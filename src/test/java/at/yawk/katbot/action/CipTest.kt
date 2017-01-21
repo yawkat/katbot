@@ -21,7 +21,7 @@ class CipTest {
 
     @BeforeMethod
     fun setUp() {
-        cip = Cip(ObjectMapper().findAndRegisterModules(), HttpClientBuilder.create().build(), EventBus())
+        cip = Cip(ObjectMapper().findAndRegisterModules(), EventBus())
     }
 
     @Test
