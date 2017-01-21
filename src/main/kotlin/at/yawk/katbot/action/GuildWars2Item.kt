@@ -10,6 +10,8 @@ import at.yawk.katbot.CancelEvent
 import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
+import at.yawk.katbot.paste.Paste
+import at.yawk.katbot.paste.PasteProvider
 import at.yawk.katbot.sendMessageSafe
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -23,6 +25,8 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private val log = LoggerFactory.getLogger(GuildWars2Item::class.java)
+private const val BOLD = "\u0002"
+private const val RESET = "\u000f"
 
 /**
  * as requested by nakami
@@ -31,7 +35,8 @@ private val log = LoggerFactory.getLogger(GuildWars2Item::class.java)
  */
 class GuildWars2Item @Inject constructor(
         val objectMapper: ObjectMapper,
-        val eventBus: EventBus
+        val eventBus: EventBus,
+        val pasteProvider: PasteProvider
 ) {
     fun start() {
         eventBus.subscribe(this)
@@ -84,15 +89,29 @@ class GuildWars2Item @Inject constructor(
 
         val message = StringBuilder()
         message.append(nick).append(": ")
+
         message.append(candidates[0].name)
-                .append(" buys ${firstResult.buys.unitPrice}")
-                .append(" sells ${firstResult.sells.unitPrice}")
+                .append(" buys $BOLD${formatPrice(firstResult.buys.unitPrice)}$RESET")
+                .append(" sells $BOLD${formatPrice(firstResult.sells.unitPrice)}$RESET")
         if (candidates.size > 1) {
-            val others = candidates.subList(1, Math.min(candidates.size, 5))
-            message.append(" | Other matches: ").append(others.joinToString(", ") { "'${it.name}'" })
-            if (candidates.size > 5) message.append(" ...")
+            val others = candidates.subList(1, Math.min(candidates.size, 100))
+            message.append(" | Other matches: ")
+                    .append(pasteProvider.createPaste(Paste(Paste.Type.TEXT, others.joinToString("\n"))))
         }
         return message.toString()
+    }
+
+    private fun formatPrice(price: Int): String {
+        if (price == 0) return "0"
+
+        var s = ""
+        val copper = price % 100
+        if (copper != 0) s += "${copper}c"
+        val silver = (price / 100) % 100
+        if (silver != 0) s += "${silver}s"
+        val gold = price / 10000
+        if (gold != 0) s += "${gold}g"
+        return s
     }
 
     private data class ItemAndName(
