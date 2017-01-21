@@ -92,7 +92,7 @@ class GuildWars2Item @Inject constructor(
 
         message.append(candidates[0].name)
                 .append(" buys $BOLD${formatPrice(firstResult.buys.unitPrice)}$RESET")
-                .append(" sells $BOLD${formatPrice(firstResult.sells.unitPrice)}$RESET")
+                .append(", sells $BOLD${formatPrice(firstResult.sells.unitPrice)}$RESET")
         if (candidates.size > 1) {
             val others = candidates.subList(1, Math.min(candidates.size, 100))
             message.append(" | Other matches: ")
