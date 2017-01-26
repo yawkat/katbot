@@ -122,7 +122,7 @@ class Cip @Inject constructor(
         var mapJs = fetchFromProxy("js/map.js")
 
         // leading assignment
-        mapJs = mapJs.replace("map = ", "")
+        mapJs = mapJs.substring(mapJs.indexOf("map = ") + "map = ".length)
         // trailing commas in objects
         mapJs = mapJs.replace(",\\s*}".toRegex(RegexOption.MULTILINE), "}")
 
