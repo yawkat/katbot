@@ -84,7 +84,7 @@ class Cip @Inject constructor(
      * @return A map of `pc id -> state`
      */
     fun loadState(): Map<String, ComputerState> {
-        val dataJs = fetchFromProxy("server/getData")
+        val dataJs = fetchFromProxy("api/hosts")
         return objectMapper.readValue(dataJs, object : TypeReference<Map<String, ComputerState>>() {})
     }
 
@@ -98,20 +98,21 @@ class Cip @Inject constructor(
         // because I don't want to reboot this server at the moment, the grsecurity flag stays and I just use curl
         // which does not break.
 
-        val process = ProcessBuilder("curl", "--insecure", "https://${System.getProperty("cipHost")}/$path").start()
+        val process = ProcessBuilder("curl", "-H", "Host: cipmap.cs.fau.de", "--insecure", "https://${System.getProperty("cipHost")}/$path").start()
         val dataJs = String(process.inputStream.readBytes())
         if (process.waitFor() != 0) throw Exception("return status != 0")
         return dataJs
     }
 
     data class ComputerState(
-            @JsonProperty("idletime")
+            @JsonProperty("idle")
             val idleTime: Int,
-            val information: String,
+            @JsonProperty("update")
+            val updateTime: Int,
             val occupied: Boolean,
-            @JsonProperty("persongroup")
+            @JsonProperty("gecos")
             val personGroup: String,
-            @JsonProperty("personname")
+            @JsonProperty("name")
             val personName: String
     )
 
@@ -119,7 +120,7 @@ class Cip @Inject constructor(
      * @return A map of `pc id -> room id`
      */
     fun loadMap(): Map<String, String> {
-        var mapJs = fetchFromProxy("js/map.js")
+        var mapJs = fetchFromProxy("static/server/js/map.js")
 
         // leading assignment
         mapJs = mapJs.substring(mapJs.indexOf("map = ") + "map = ".length)
