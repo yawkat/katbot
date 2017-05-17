@@ -9,6 +9,8 @@ package at.yawk.katbot.passive
 import at.yawk.katbot.Config
 import at.yawk.katbot.IrcProvider
 import at.yawk.katbot.UrlShortener
+import at.yawk.katbot.paste.Paste
+import at.yawk.katbot.paste.PasteProvider
 import com.rometools.rome.feed.synd.SyndEntry
 import com.rometools.rome.feed.synd.SyndFeed
 import com.rometools.rome.io.SyndFeedInput
@@ -18,6 +20,7 @@ import org.slf4j.LoggerFactory
 import org.xml.sax.InputSource
 import java.net.URI
 import java.time.Instant
+import java.util.ArrayList
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -32,7 +35,8 @@ class RssFeedListener @Inject constructor(
         val config: Config,
         val httpClient: HttpClient,
         // lazy init
-        val urlShortener: Provider<UrlShortener>
+        val urlShortener: Provider<UrlShortener>,
+        val pasteProvider: Provider<PasteProvider>
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(RssFeedListener::class.java)
@@ -48,32 +52,50 @@ class RssFeedListener @Inject constructor(
 
     @Synchronized
     private fun poll() {
-        for (conf in config.feeds.entries) {
-            val uri = conf.key
-
+        for ((uri, conf) in config.feeds) {
             val feed = loadFeed(uri)
             val deadline = lastPollTimes[uri]
             var newDeadline: Instant? = null
+            val toFire = ArrayList<SyndEntry>()
             for (feedEntry in feed.entries) {
                 val entryTime = feedEntry.publishedDate.toInstant()
                 if (newDeadline == null || entryTime.isAfter(newDeadline)) {
                     newDeadline = entryTime
                 }
                 if (deadline != null && entryTime.isAfter(deadline)) {
-                    fire(conf.value, feedEntry)
+                    toFire.add(feedEntry)
                 }
             }
             if (newDeadline != null) {
                 lastPollTimes[uri] = newDeadline
             }
+            if (!toFire.isEmpty()) {
+                fire(conf, toFire)
+            }
         }
     }
 
-    private fun fire(conf: FeedConfiguration, feedEntry: SyndEntry) {
+    private fun fire(conf: FeedConfiguration, feedEntries: List<SyndEntry>) {
+        val title: String
+        val uri: String
+        val uriShort: String
+
+        if (feedEntries.size == 1) {
+            title = feedEntries[0].title
+            uri = feedEntries[0].uri
+            uriShort = urlShortener.get().shorten(URI.create(uri)).toString()
+        } else {
+            val text = feedEntries.map { "${it.title} ${it.uri}" }.joinToString("\n")
+
+            title = "${feedEntries.size} notifications"
+            uri = pasteProvider.get().createPaste(Paste(Paste.Type.TEXT, text)).toASCIIString()
+            uriShort = uri
+        }
+
         val message = conf.messagePattern
-                .with("title", feedEntry.title)
-                .with("uri", feedEntry.uri)
-                .with("uri.short", urlShortener.get().shorten(URI.create(feedEntry.uri)).toString())
+                .with("title", title)
+                .with("uri", uri)
+                .with("uri.short", uriShort)
 
         log.info("Sending feed update '{}' to {} channels", message, conf.channels.size)
 
