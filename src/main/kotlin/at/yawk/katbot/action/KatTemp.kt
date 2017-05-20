@@ -38,7 +38,7 @@ class KatTemp @Inject constructor(val eventBus: EventBus, config: Config, val ob
             val url = config.url.removeSuffix("/") + "/render?target=1wire.whiskers.temp.*&format=json&from=-5min"
             val graphs = objectMapper.readValue<List<Graph>>(URL(url), object : TypeReference<List<Graph>>() {})
             val reply = graphs.map {
-                val name = config.aliases[it.target] ?: it.target.removePrefix("1wire.whiskers.")
+                val name = config.aliases[it.name] ?: it.name.removePrefix("1wire.whiskers.")
                 val value = it.points.maxBy { it.timestamp }!!.value
                 "$name: ${value?.toString()?.plus(" °C") ?: "N/A"}"
             }.joinToString(" | ")
@@ -54,7 +54,7 @@ class KatTemp @Inject constructor(val eventBus: EventBus, config: Config, val ob
     )
 
     data class Graph(
-            @JsonProperty("name") val target: String,
+            @JsonProperty("target") val name: String,
             @JsonProperty("datapoints") val points: List<Point>
     )
 
