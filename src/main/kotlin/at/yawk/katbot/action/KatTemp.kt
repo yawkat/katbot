@@ -17,8 +17,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
+import com.google.common.annotations.VisibleForTesting
 import java.net.URL
+import java.text.NumberFormat
 import java.time.Instant
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -31,19 +34,31 @@ class KatTemp @Inject constructor(val eventBus: EventBus, config: Config, val ob
         eventBus.subscribe(this)
     }
 
+    companion object {
+        @VisibleForTesting
+        internal fun format(value: Double): String? {
+            val format = NumberFormat.getInstance(Locale.US)
+            format.maximumFractionDigits = 1
+            format.minimumFractionDigits = 0
+            return format.format(value)
+        }
+    }
+
     @Subscribe
     fun command(command: Command) {
         if (command.line.messageIs("kattemp")) {
 
             var components = emptyList<String>()
 
-            for (group in config.groups) {
+            for (@Suppress("Destructure") group in config.groups) {
                 val url = config.url.removeSuffix("/") + "/render?target=${group.wildcard}&format=json&from=-5min"
                 val graphs = objectMapper.readValue<List<Graph>>(URL(url), object : TypeReference<List<Graph>>() {})
                 components += graphs.map {
                     val name = group.aliases[it.name] ?: it.name.removePrefix(group.prefix)
                     val value = it.points.filter { it.value != null }.maxBy { it.timestamp }?.value
-                    "$name: ${value?.toString()?.plus("°C") ?: "N/A"}"
+                    "$name: " + if (value == null) "N/A" else {
+                        format(value)
+                    }
                 }
             }
 
