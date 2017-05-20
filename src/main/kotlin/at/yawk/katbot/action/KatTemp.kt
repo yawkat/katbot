@@ -57,7 +57,7 @@ class KatTemp @Inject constructor(val eventBus: EventBus, config: Config, val ob
                     val name = group.aliases[it.name] ?: it.name.removePrefix(group.prefix)
                     val value = it.points.filter { it.value != null }.maxBy { it.timestamp }?.value
                     "$name: " + if (value == null) "N/A" else {
-                        format(value)
+                        format(value) + "°C"
                     }
                 }
             }
