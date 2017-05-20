@@ -39,7 +39,7 @@ class KatTemp @Inject constructor(val eventBus: EventBus, config: Config, val ob
             val graphs = objectMapper.readValue<List<Graph>>(URL(url), object : TypeReference<List<Graph>>() {})
             val reply = graphs.map {
                 val name = config.aliases[it.name] ?: it.name.removePrefix("1wire.whiskers.")
-                val value = it.points.maxBy { it.timestamp }!!.value
+                val value = it.points.filter { it.value != null }.maxBy { it.timestamp }?.value
                 "$name: ${value?.toString()?.plus(" °C") ?: "N/A"}"
             }.joinToString(" | ")
             command.channel.sendMessageSafe(reply)
@@ -63,7 +63,7 @@ class KatTemp @Inject constructor(val eventBus: EventBus, config: Config, val ob
             val timestamp: Instant
     ) {
         @JsonCreator constructor(array: ArrayNode) : this(
-                array.get(0).asDouble(),
+                array.get(0).let { if (it.isNull) null else it.asDouble() },
                 Instant.ofEpochSecond(array.get(1).asLong())
         ) {
             if (array.size() != 2) throw IllegalArgumentException()
