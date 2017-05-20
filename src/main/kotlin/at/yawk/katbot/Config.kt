@@ -7,6 +7,7 @@
 package at.yawk.katbot
 
 import at.yawk.katbot.action.DockerCommand
+import at.yawk.katbot.action.KatTemp
 import at.yawk.katbot.passive.ForumListener
 import at.yawk.katbot.passive.RssFeedListener
 import at.yawk.katbot.web.WebConfig
@@ -23,7 +24,8 @@ data class Config(
         val interactions: List<String>,
         val eventChannels: Set<String>,
         val docker: DockerCommand.DockerConfig,
-        val web: WebConfig
+        val web: WebConfig,
+        val temperature: KatTemp.TemperatureConfig
 ) {
     data class Server(
             val host: String,
