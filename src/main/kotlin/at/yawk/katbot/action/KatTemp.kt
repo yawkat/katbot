@@ -47,6 +47,10 @@ class KatTemp @Inject constructor(val eventBus: EventBus, config: Config, val ob
     @Subscribe
     fun command(command: Command) {
         if (command.line.messageIs("kattemp")) {
+            if (!command.public) {
+                command.channel.sendMessageSafe("This command can only be run in channels.")
+                throw CancelEvent
+            }
 
             var components = emptyList<String>()
 
