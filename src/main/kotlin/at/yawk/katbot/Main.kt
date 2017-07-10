@@ -7,22 +7,7 @@
 package at.yawk.katbot
 
 import at.yawk.docker.DockerClient
-import at.yawk.katbot.action.Cip
-import at.yawk.katbot.action.Decide
-import at.yawk.katbot.action.DockerCommand
-import at.yawk.katbot.action.Factoid
-import at.yawk.katbot.action.Fortune
-import at.yawk.katbot.action.GuildWars2Item
-import at.yawk.katbot.action.Interact
-import at.yawk.katbot.action.Karma
-import at.yawk.katbot.action.KatTemp
-import at.yawk.katbot.action.Restrict
-import at.yawk.katbot.action.Seen
-import at.yawk.katbot.action.Sql
-import at.yawk.katbot.action.Uptime
-import at.yawk.katbot.action.UrbanDictionary
-import at.yawk.katbot.action.Wosch
-import at.yawk.katbot.action.closed
+import at.yawk.katbot.action.*
 import at.yawk.katbot.command.CommandManager
 import at.yawk.katbot.markov.Markov
 import at.yawk.katbot.passive.EventManager
@@ -171,6 +156,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Wosch>().start()
     injector.getInstance<Markov>().start()
     injector.getInstance<GuildWars2Item>().start()
+    injector.getInstance<UnicodeInfo>().start()
     injector.getInstance<Invite>().start()
     injector.getInstance<KatTemp>().start()
     injector.getInstance<WebSecurityEditor>().start()
