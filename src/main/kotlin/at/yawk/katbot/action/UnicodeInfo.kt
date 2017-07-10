@@ -35,7 +35,7 @@ class UnicodeInfo @Inject constructor(
     fun command(command: Command) {
         if (command.line.startsWith("unicode_info")) {
             fun usage(): Nothing {
-                command.channel.sendMessageSafe("Usage: ~unicode_info <name/xid/did> <character>")
+                command.channel.sendMessageSafe("Usage: ~unicode_info <name/category/xid/did> <character>")
                 throw CancelEvent
             }
 
