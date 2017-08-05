@@ -13,7 +13,8 @@ import at.yawk.katbot.template.Template
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
 import java.net.URI
-import java.util.*
+import java.util.ArrayList
+import java.util.HashMap
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -67,14 +68,19 @@ class ForumListener @Inject constructor(
             val threads = fetchThreads()
             for (thread in threads) {
                 val oldReplyCount = sentThreadReplyCounts.put(thread.id, thread.replyCount)
-                if (oldReplyCount == null && thread.replyCount != oldReplyCount && !firstPass) {
+                if (thread.replyCount != oldReplyCount && !firstPass) {
                     val message = configuration.messagePattern
                             .with("title", thread.title)
                             .with("author", thread.author)
                             .with("uri", thread.uri.toString())
                             .with("uri.short", { urlShortener.get().shorten(thread.uri).toString() })
-                    log.info("Sending forum update '{}' to {} channels", message, configuration.channels.size)
-                    message.sendTo(ircProvider.findChannels(configuration.channels))
+                    val targetChannels = if (oldReplyCount == null) {
+                        configuration.channels.filter { it.showNewPosts }
+                    } else {
+                        configuration.channels.filter { it.showUpdates }
+                    }
+                    log.info("Sending forum update '{}' to {} channels", message, targetChannels.size)
+                    message.sendTo(ircProvider.findChannels(targetChannels.map { it.name }))
                 }
             }
             firstPass = false
@@ -113,7 +119,13 @@ class ForumListener @Inject constructor(
     )
 
     data class ForumConfiguration(
-            val channels: List<String>,
+            val channels: List<ForumChannelConfiguration>,
             val messagePattern: Template
-    )
+    ) {
+        data class ForumChannelConfiguration(
+                val name: String,
+                val showNewPosts: Boolean,
+                val showUpdates: Boolean
+        )
+    }
 }
