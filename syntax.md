@@ -69,3 +69,9 @@ A value is *truthy* if it is not `0`, not blank and not `false`.
 - `[equal, *$items]`: Returns `true` if all items are equal or there are no items, `false` otherwise.
 - `[lt, *$items]`, `[gt, *$items]`, `[leq, *$items]`, `[geq, *$items]` return `true` if all items are numbers and neighbouring pairs are less than, greater than, less than or equal, greater than or equal to each other, or `items` is empty. Returns `false` if this is not the case.
 - `[random, *$items]` returns a random item from `items`.
+
+## Factoid parameters
+
+When a factoid is saved with `$` in the factoid name, such as `~cat $ = ...`, these parameters count as wildcards and match any string. These parameters are then passed to the factoid value evaluation and can be accessed through the invocations `${1}`, `${2}` and so on.
+
+A trailing parameter may also match multiple space-separated strings, so that `*${1}` will yield a list with a size larger than or equal to 1.
