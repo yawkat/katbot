@@ -32,6 +32,8 @@ import java.nio.file.Paths
 import java.sql.ResultSet
 import java.time.Clock
 import java.time.Instant
+import java.time.Year
+import java.time.ZoneOffset
 import java.util.HashMap
 import java.util.regex.Pattern
 import javax.inject.Inject
@@ -92,6 +94,17 @@ class Karma @Inject constructor(
         web.addResource(this)
     }
 
+    private fun chatFilterGetKarma(canonicalizedSubject: String): Long {
+        var value = dao.getKarma(canonicalizedSubject) ?: 0
+        if (canonicalizedSubject == "year") value += Year.now(ZoneOffset.UTC).value - 37
+        return value
+    }
+
+    private fun chatFilterDelta(canonicalizedSubject: String, delta: Long): Long {
+        if (canonicalizedSubject == "year") return Math.abs(delta)
+        return delta
+    }
+
     @Subscribe
     fun command(event: Command) {
         val manipulateMatcher = MANIPULATE_PATTERN.matcher(event.line.message)
@@ -111,9 +124,10 @@ class Karma @Inject constructor(
                     throw CancelEvent
                 }
 
-                val delta = if (manipulateMatcher.group(2) == "++") 1L else -1L
+                var delta = if (manipulateMatcher.group(2) == "++") 1L else -1L
+                delta = chatFilterDelta(canonicalizedSubject, delta)
                 addKarma(canonicalizedSubject, delta, actor = event.actor.nick + '@' + event.actor.host)
-                val newKarma = dao.getKarma(canonicalizedSubject)
+                val newKarma = chatFilterGetKarma(canonicalizedSubject)
 
                 log.info("{} has changed the karma level for {} to {}",
                         event.actor.nick,
@@ -128,7 +142,7 @@ class Karma @Inject constructor(
                 val primes = viewMatcher.group(1) == "p"
                 val subject = viewMatcher.group(2).trim { it <= ' ' }
                 if (!subject.isEmpty()) {
-                    val value = getKarma(canonicalizeSubjectName(subject))
+                    val value = chatFilterGetKarma(canonicalizeSubjectName(subject))
                     val valueText = if (primes && Math.abs(value) > 1) {
                         var remainder = Math.abs(value)
                         val counts = HashMap<Long, Int>()
@@ -166,7 +180,7 @@ class Karma @Inject constructor(
         val canonicalizedSubjectName = canonicalizeSubjectName(name)
         return Entry(
                 canonicalizedSubjectName,
-                getKarma(canonicalizedSubjectName)
+                dao.getKarma(canonicalizedSubjectName) ?: 0
         )
     }
 
@@ -174,9 +188,6 @@ class Karma @Inject constructor(
     @Path("/{name}/history")
     fun getHistoryForName(@PathParam("name") name: String): List<HistoryEntry> =
             dao.getKarmaLog(canonicalizeSubjectName(name))
-
-    private fun getKarma(canonicalizedSubject: String): Long =
-            dao.getKarma(canonicalizedSubject) ?: 0L
 
     private fun addKarma(canonicalizedSubject: String, delta: Long, actor: String?, comment: String? = null, requireInsert: Boolean = false) {
         dbi.inTransaction { handle, tx ->
