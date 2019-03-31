@@ -120,7 +120,7 @@ class Cip @Inject constructor(
      * @return A map of `pc id -> room id`
      */
     fun loadMap(): Map<String, String> {
-        var mapJs = fetchFromProxy("static/server/js/map.js")
+        var mapJs = fetchFromProxy("map.js")
 
         // leading assignment
         mapJs = mapJs.substring(mapJs.indexOf("map = ") + "map = ".length)
