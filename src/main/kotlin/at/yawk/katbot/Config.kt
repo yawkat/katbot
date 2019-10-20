@@ -6,7 +6,6 @@
 
 package at.yawk.katbot
 
-import at.yawk.katbot.action.DockerCommand
 import at.yawk.katbot.action.KatTemp
 import at.yawk.katbot.passive.ForumListener
 import at.yawk.katbot.passive.RssFeedListener
@@ -23,7 +22,6 @@ data class Config(
         val forums: Map<URI, ForumListener.ForumConfiguration>,
         val interactions: List<String>,
         val eventChannels: Set<String>,
-        val docker: DockerCommand.DockerConfig,
         val web: WebConfig,
         val temperature: KatTemp.TemperatureConfig
 ) {

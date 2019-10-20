@@ -8,7 +8,6 @@ package at.yawk.katbot.passive
 
 import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
-import at.yawk.katbot.action.isPrintableAsciiChar
 import at.yawk.katbot.sendMessageSafe
 import org.jsoup.Jsoup
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
@@ -19,6 +18,8 @@ import java.util.concurrent.Executors
 import javax.inject.Inject
 
 private val URL_PATTERN = "(https?://)?(([0-9]{1,3}\\.){3}[0-9]{1,3}|\\w+\\.\\w{2,8})(\\S+[^\\s\\.\"'])?".toPattern()
+
+fun isPrintableAsciiChar(it: Char) = it in ' '..'~'
 
 /**
  * @author yawkat

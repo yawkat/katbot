@@ -6,7 +6,6 @@
 
 package at.yawk.katbot
 
-import at.yawk.docker.DockerClient
 import at.yawk.katbot.action.*
 import at.yawk.katbot.command.CommandManager
 import at.yawk.katbot.markov.Markov
@@ -106,7 +105,6 @@ fun main(args: Array<String>) {
                 }.filterNotNull()
             }
         })
-        it.bind<DockerClient>().toInstance(DockerClient.builder().url(config.docker.url).build())
     })
 
     val securityManager = injector.getInstance(SecurityManager::class.java)
@@ -163,7 +161,6 @@ fun main(args: Array<String>) {
     injector.getInstance<PasteProvider>().start()
 
     injector.getInstance<WebBootstrap>().start()
-    injector.getInstance<DockerCommand>().start()
 }
 
 private fun connect(config: Config): Client {

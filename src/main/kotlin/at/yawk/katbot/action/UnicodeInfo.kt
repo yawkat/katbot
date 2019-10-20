@@ -44,8 +44,8 @@ class UnicodeInfo @Inject constructor(
             val op: (Int) -> String = when (command.line.parameters[1]) {
                 "name" -> { it -> info[it]?.name ?: "None" }
                 "category" -> { it -> info[it]?.category ?: "None" }
-                "xid" -> Integer::toHexString
-                "did" -> Integer::toString
+                "xid" -> { it -> Integer.toHexString(it) }
+                "did" -> { it -> it.toString() }
                 else -> usage()
             }
 
