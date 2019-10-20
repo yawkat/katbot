@@ -11,14 +11,13 @@ import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
 import at.yawk.katbot.sendMessageSafe
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.http.client.HttpClient
-import org.apache.http.client.methods.HttpGet
 import org.slf4j.LoggerFactory
-import java.nio.charset.StandardCharsets
+import java.net.URL
 import java.util.HashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -85,23 +84,23 @@ class Cip @Inject constructor(
      */
     fun loadState(): Map<String, ComputerState> {
         val dataJs = fetchFromProxy("api/hosts")
-        return objectMapper.readValue(dataJs, object : TypeReference<Map<String, ComputerState>>() {})
+        return objectMapper.readValue(dataJs, Hosts::class.java).hosts
     }
 
     private fun fetchFromProxy(path: String): String {
-        // i really hate my life right now.
-        // the old code (which just used java) broke with 'Protocol family unavailable' on a server where everything
-        // except java works with ipv6. Apparently, to detect ipv6 support, openjdk reads /proc/net/if_inet6 which
-        // under the grsecurity kernel of the server is not readable to users. Then hotspot yields a beautifully
-        // undescriptive error message that leads to hours of debugging.
+        return URL("https://cipmap.cs.fau.de/$path").openStream().use {
+            it.readAllBytes().toString(Charsets.UTF_8)
+        }
+    }
 
-        // because I don't want to reboot this server at the moment, the grsecurity flag stays and I just use curl
-        // which does not break.
+    @JsonIgnoreProperties(value = ["exercises_today", "temperatures", "roomname", "hostname"])
+    class Hosts {
+        val hosts: MutableMap<String, ComputerState> = HashMap()
 
-        val process = ProcessBuilder("curl", "-H", "Host: cipmap.cs.fau.de", "--insecure", "https://${System.getProperty("cipHost")}/$path").start()
-        val dataJs = String(process.inputStream.readBytes())
-        if (process.waitFor() != 0) throw Exception("return status != 0")
-        return dataJs
+        @JsonAnySetter
+        fun addHost(key: String, state: ComputerState) {
+            hosts[key] = state
+        }
     }
 
     data class ComputerState(
@@ -133,11 +132,8 @@ class Cip @Inject constructor(
                 .withFeatures(JsonParser.Feature.ALLOW_COMMENTS)
                 .readTree(mapJs)
         tree.fields().forEach { room ->
-            if (room.key == "diverse") return@forEach
-            if (room.key == "doors") return@forEach
-
-            room.value.elements().forEach {
-                rooms.put(it.get("id").asText(), room.key)
+            room.value["computer"].elements().forEach {
+                rooms[it["id"].asText()] = room.key
             }
         }
 
