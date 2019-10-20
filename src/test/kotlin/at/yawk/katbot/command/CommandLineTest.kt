@@ -13,7 +13,7 @@ import org.testng.annotations.Test
  * @author yawkat
  */
 class CommandLineTest {
-    fun parseParameters(string: String) = CommandLine.parseParameters(string)
+    fun parseParameters(string: String) = CommandLine.parseParameters(string).map { it.value }
 
     @Test
     fun `parse parameters`() {
