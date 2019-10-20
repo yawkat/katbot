@@ -89,7 +89,7 @@ class Cip @Inject constructor(
 
     private fun fetchFromProxy(path: String): String {
         return URL("https://cipmap.cs.fau.de/$path").openStream().use {
-            it.readAllBytes().toString(Charsets.UTF_8)
+            it.readBytes().toString(Charsets.UTF_8)
         }
     }
 
