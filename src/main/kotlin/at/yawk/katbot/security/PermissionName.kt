@@ -24,6 +24,7 @@ enum class PermissionName(val id: String): Permission {
     EDIT_MARKOV("editMarkov"),
     INVITE("invite"),
     TALK("talk"),
+    LOAD_URL("loadUrl"),
 
     ADMIN("admin"),
     ;

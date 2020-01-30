@@ -8,7 +8,10 @@ package at.yawk.katbot.passive
 
 import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
+import at.yawk.katbot.security.PermissionName
+import at.yawk.katbot.security.Security
 import at.yawk.katbot.sendMessageSafe
+import org.apache.shiro.util.ThreadContext
 import org.jsoup.Jsoup
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import java.io.IOException
@@ -35,6 +38,11 @@ class UrlTitleLoader @Inject constructor(
 
     @Subscribe(priority = 1000)
     fun onPublicMessage(event: ChannelMessageEvent) {
+        val permission = Security.createPermissionForChannelAndName(event.channel, PermissionName.LOAD_URL)
+        if (!ThreadContext.getSubject().isPermitted(permission)) {
+            return
+        }
+
         val matcher = URL_PATTERN.matcher(event.message)
         if (!matcher.find()) return
         val url = try {
