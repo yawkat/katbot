@@ -53,8 +53,8 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
             }
 
             result = result
-                    .sortedBy { it.deaths }
-                    .sortedBy { it.cases }
+                    .sortedBy { -it.cases }
+                    .sortedBy { -it.deaths }
 
             val germany = result.find { it.name == "Germany" }
             if (germany != null) {
