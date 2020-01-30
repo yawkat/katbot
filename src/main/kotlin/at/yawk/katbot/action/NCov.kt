@@ -68,6 +68,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 messageBuilder.append(text)
             }
             command.channel.sendMessageSafe(messageBuilder.toString())
+            throw CancelEvent
         }
     }
 
@@ -77,7 +78,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
     )
 
     companion object {
-        private fun toInt(s: String) = s.replace(",", "").toInt()
+        private fun toInt(s: String) = s.replace(",", "").trim().toInt()
 
         fun load(): List<Region> {
             val doc = Jsoup.parse(URL(
@@ -88,7 +89,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 val cells = row.select("td")
                 if (cells.isEmpty()) continue
                 val (name, cases, deaths) = cells
-                regions.add(Region(name.text(), toInt(cases.text()), toInt(deaths.text())))
+                regions.add(Region(name.text().trim(), toInt(cases.text()), toInt(deaths.text())))
             }
             return regions
         }
