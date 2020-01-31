@@ -94,7 +94,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
             for (row in doc.select(".wikitable tbody tr")) {
                 if (row.hasClass("sortbottom")) continue
                 val cells = row.select("td")
-                if (cells.isEmpty()) continue
+                if (cells.size < 3) continue
                 val (name, cases, deaths) = cells
                 regions.add(Region(name.text().trim(), toInt(cases.text()), toInt(deaths.text())))
             }
