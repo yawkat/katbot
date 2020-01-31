@@ -61,7 +61,10 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 result = listOf(germany) + result.filter { it != germany }
             }
 
-            val messageBuilder = StringBuilder(command.actor.nick).append(", nCov status: ")
+            val total = Region("Total", cases = result.sumBy { it.cases }, deaths = result.sumBy { it.deaths })
+            result = listOf(total) + result
+
+            val messageBuilder = StringBuilder(command.actor.nick).append(", nCov cases: ")
 
             for ((i, region) in result.withIndex()) {
                 var text = toString(region)
