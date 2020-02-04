@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private val log = LoggerFactory.getLogger(GuildWars2Item::class.java)
-private const val BOLD = "\u0002"
-private const val RESET = "\u000f"
+const val BOLD = "\u0002"
+const val RESET = "\u000f"
 
 /**
  * as requested by nakami

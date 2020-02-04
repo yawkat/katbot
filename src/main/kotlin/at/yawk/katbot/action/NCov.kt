@@ -26,14 +26,6 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
         eventBus.subscribe(this)
     }
 
-    private fun toString(region: Region): String {
-        var s = "${region.name} ${region.cases}"
-        if (region.deaths != 0) {
-            s += " (${region.deaths} deaths)"
-        }
-        return s
-    }
-
     @Subscribe
     fun command(command: Command) {
         if (command.line.messageIs("ncov")) {
@@ -53,13 +45,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
             }
 
             result = result
-                    .sortedBy { -it.cases }
-                    .sortedBy { -it.deaths }
-
-            val germany = result.find { it.name == "Germany" }
-            if (germany != null) {
-                result = listOf(germany) + result.filter { it != germany }
-            }
+                    .sortedBy { -(it.deaths * 4 + it.cases) }
 
             val total = Region("Total", cases = result.sumBy { it.cases }, deaths = result.sumBy { it.deaths })
             result = listOf(total) + result
@@ -67,8 +53,11 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
             val messageBuilder = StringBuilder(command.actor.nick).append(", nCov cases: ")
 
             for ((i, region) in result.withIndex()) {
-                var text = toString(region)
+                var text = "${region.name} ${region.cases}"
+                if (region.deaths != 0) text += " (${region.deaths} dead)"
+                if (region.name == "Germany" || region.name == "Total") text = "$BOLD$text$RESET"
                 if (i != 0) text = ", $text"
+
                 if (text.length + messageBuilder.length > MAX_MESSAGE_LENGTH) {
                     break
                 }
