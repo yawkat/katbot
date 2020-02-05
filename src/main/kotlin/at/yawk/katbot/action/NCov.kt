@@ -44,18 +44,26 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 result = cached.result
             }
 
-            result = result
-                    .sortedBy { -(it.deaths * 4 + it.cases) }
+            result = result.sortedBy { -it.cases }
 
-            val total = Region("Total", cases = result.sumBy { it.cases }, deaths = result.sumBy { it.deaths })
+            val total = Region(
+                    "Total",
+                    cases = result.sumBy { it.cases },
+                    deaths = result.sumBy { it.deaths },
+                    recoveries = result.sumBy { it.recoveries })
             result = listOf(total) + result
 
             val messageBuilder = StringBuilder(command.actor.nick).append(", nCov cases: ")
 
             for ((i, region) in result.withIndex()) {
                 var text = "${region.name} ${region.cases}"
-                if (region.deaths != 0) text += " (${region.deaths} dead)"
-                if (region.name == "Germany" || region.name == "Total") text = "$BOLD$text$RESET"
+
+                val extra = ArrayList<String>()
+                if (region.deaths != 0) extra.add("${region.deaths} dead")
+                if (region.recoveries != 0) extra.add("${region.recoveries} recovered")
+                if (extra.isNotEmpty()) text += " (" + extra.joinToString(", ") + ")"
+
+                if (region.name == "Germany" || region.name == "Total") text = BOLD + text + RESET
                 if (i != 0) text = ", $text"
 
                 if (text.length + messageBuilder.length > MAX_MESSAGE_LENGTH) {
@@ -74,7 +82,9 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
     )
 
     companion object {
-        private fun toInt(s: String) = s.replace(",", "").trim().toInt()
+        private fun toInt(s: String) =
+                if (s == "") 0
+                else s.replace(",", "").trim().toInt()
 
         fun load(): List<Region> {
             val doc = Jsoup.parse(URL(
@@ -84,8 +94,13 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 if (row.hasClass("sortbottom")) continue
                 val cells = row.select("td")
                 if (cells.size < 3) continue
-                val (name, cases, deaths) = cells
-                regions.add(Region(name.text().trim(), toInt(cases.ownText()), toInt(deaths.ownText())))
+                val (name, cases, deaths, recoveries) = cells
+                regions.add(Region(
+                        name = name.text().trim(),
+                        cases = toInt(cases.ownText()),
+                        deaths = toInt(deaths.ownText()),
+                        recoveries = toInt(recoveries.ownText())
+                ))
             }
             return regions
         }
@@ -94,6 +109,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
     data class Region(
             val name: String,
             val cases: Int,
-            val deaths: Int
+            val deaths: Int,
+            val recoveries: Int
     )
 }
