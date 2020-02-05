@@ -66,7 +66,8 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 if (region.name == "Germany" || region.name == "Total") text = BOLD + text + RESET
                 if (i != 0) text = ", $text"
 
-                if (text.length + messageBuilder.length > MAX_MESSAGE_LENGTH) {
+                if (text.length + messageBuilder.length > MAX_MESSAGE_LENGTH - 3) {
+                    messageBuilder.append("…")
                     break
                 }
                 messageBuilder.append(text)
