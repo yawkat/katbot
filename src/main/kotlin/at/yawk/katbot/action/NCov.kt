@@ -13,10 +13,12 @@ import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
 import at.yawk.katbot.sendMessageSafe
 import org.jsoup.Jsoup
+import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.URL
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 import javax.inject.Inject
 
 class NCov @Inject constructor(private val eventBus: EventBus) {
@@ -38,7 +40,12 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
             val now = Instant.now()
             var result: List<Region>
             if (cached == null || cached.time < now.minusSeconds(TimeUnit.MINUTES.toSeconds(15))) {
-                result = load()
+                result = try {
+                    load()
+                } catch (e: Exception) {
+                    command.channel.sendMessageSafe(e.toString())
+                    throw CancelEvent
+                }
                 this.cache = DataWithTime(now, result)
             } else {
                 result = cached.result
@@ -53,7 +60,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                     recoveries = result.sumBy { it.recoveries })
             result = listOf(total) + result
 
-            val messageBuilder = StringBuilder(command.actor.nick).append(", nCov cases: ")
+            val messageBuilder = StringBuilder((command.target ?: command.actor).nick).append(", nCov cases: ")
 
             for ((i, region) in result.withIndex()) {
                 var text = "${region.name} ${region.cases}"
@@ -83,6 +90,8 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
     )
 
     companion object {
+        private val parenthesesNumber = Pattern.compile("(\\d+) \\((\\d+)\\)")
+
         private fun toInt(s: String) =
                 if (s == "") 0
                 else s.replace(",", "").trim().toInt()
@@ -96,12 +105,31 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 val cells = row.select("td")
                 if (cells.size < 3) continue
                 val (name, cases, deaths, recoveries) = cells
-                regions.add(Region(
-                        name = name.text().trim(),
-                        cases = toInt(cases.ownText()),
-                        deaths = toInt(deaths.ownText()),
-                        recoveries = toInt(recoveries.ownText())
-                ))
+                val nameString = name.text().trim()
+                val casesString = cases.ownText()
+                val casesMatcher = parenthesesNumber.matcher(casesString)
+                if (casesMatcher.matches() && nameString == "Japan") {
+                    val casesJapan = toInt(casesMatcher.group(1))
+                    regions.add(Region(
+                            name = "Japan",
+                            cases = casesJapan,
+                            deaths = toInt(deaths.ownText()),
+                            recoveries = toInt(recoveries.ownText())
+                    ))
+                    regions.add(Region(
+                            name = "Diamond Princess",
+                            cases = toInt(casesMatcher.group(2)) - casesJapan,
+                            deaths = toInt(deaths.ownText()),
+                            recoveries = toInt(recoveries.ownText())
+                    ))
+                } else {
+                    regions.add(Region(
+                            name = nameString,
+                            cases = toInt(casesString),
+                            deaths = toInt(deaths.ownText()),
+                            recoveries = toInt(recoveries.ownText())
+                    ))
+                }
             }
             return regions
         }

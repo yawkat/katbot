@@ -13,8 +13,10 @@ class NCovTest {
             Assert.assertTrue(region.recoveries <= region.cases)
         }
         val china = regions.first { it.name.contains("China") }
-        Assert.assertTrue(china.cases >= 24348 )
+        Assert.assertTrue(china.cases >= 24348)
         Assert.assertTrue(china.deaths >= 491)
         Assert.assertTrue(china.recoveries >= 892)
+        val diamondPrincess = regions.first { it.name.contains("Diamond Princess") }
+        Assert.assertTrue(diamondPrincess.cases >= 61)
     }
 }
