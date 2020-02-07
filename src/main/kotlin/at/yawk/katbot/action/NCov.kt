@@ -119,8 +119,8 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                     regions.add(Region(
                             name = "Diamond Princess",
                             cases = toInt(casesMatcher.group(2)) - casesJapan,
-                            deaths = toInt(deaths.ownText()),
-                            recoveries = toInt(recoveries.ownText())
+                            deaths = 0,
+                            recoveries = 0
                     ))
                 } else {
                     regions.add(Region(
