@@ -90,7 +90,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
     )
 
     companion object {
-        private val parenthesesNumber = Pattern.compile("(\\d+) \\((\\d+)\\)")
+        private val parenthesesNumber = Pattern.compile("\\d+ \\((\\d+) \\+ (\\d+)\\)")
 
         private fun toInt(s: String) =
                 if (s == "") 0
@@ -108,17 +108,16 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 val nameString = name.text().trim()
                 val casesString = cases.ownText()
                 val casesMatcher = parenthesesNumber.matcher(casesString)
-                if (casesMatcher.matches() && nameString == "Japan") {
-                    val casesJapan = toInt(casesMatcher.group(1))
+                if (casesMatcher.matches() && nameString.contains("Japan")) {
                     regions.add(Region(
                             name = "Japan",
-                            cases = casesJapan,
+                            cases = toInt(casesMatcher.group(1)),
                             deaths = toInt(deaths.ownText()),
                             recoveries = toInt(recoveries.ownText())
                     ))
                     regions.add(Region(
                             name = "Diamond Princess",
-                            cases = toInt(casesMatcher.group(2)) - casesJapan,
+                            cases = toInt(casesMatcher.group(2)),
                             deaths = 0,
                             recoveries = 0
                     ))
