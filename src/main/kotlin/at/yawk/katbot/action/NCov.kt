@@ -93,7 +93,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
         private val parenthesesNumber = Pattern.compile("\\d+ \\((\\d+) \\+ (\\d+)\\)")
 
         private fun toInt(s: String) =
-                if (s == "") 0
+                if (s == "" || s == "–") 0
                 else s.replace(",", "").trim().toInt()
 
         fun load(): List<Region> {
@@ -102,11 +102,14 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
             val regions = ArrayList<Region>()
             for (row in doc.select(".wikitable tbody tr")) {
                 if (row.hasClass("sortbottom")) continue
-                val cells = row.select("td")
-                if (cells.size < 3) continue
-                val (name, cases, deaths, recoveries) = cells
+                val tds = row.select("td")
+                val ths = row.select("th")
+                if (tds.size < 3) continue
+                if (ths.size != 1) continue
+                val name = ths.single()
+                val (cases, deaths, recoveries) = tds
                 val nameString = name.text().trim()
-                val casesString = cases.ownText()
+                val casesString = cases.text()
                 val casesMatcher = parenthesesNumber.matcher(casesString)
                 if (casesMatcher.matches() && nameString.contains("Japan")) {
                     regions.add(Region(
