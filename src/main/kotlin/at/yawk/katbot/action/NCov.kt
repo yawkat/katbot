@@ -104,11 +104,12 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 if (row.hasClass("sortbottom")) continue
                 val tds = row.select("td")
                 val ths = row.select("th")
-                if (tds.size < 3) continue
+                if (tds.size < 2) continue
                 if (ths.size != 1) continue
                 val name = ths.single()
-                val (cases, deaths, recoveries) = tds
+                val (cases, deaths) = tds
                 val nameString = name.text().trim()
+                val recoveries = if (tds.size >= 3) toInt(tds[2].ownText()) else 0
                 val casesString = cases.text()
                 val casesMatcher = parenthesesNumber.matcher(casesString)
                 if (casesMatcher.matches() && nameString.contains("Japan")) {
@@ -116,7 +117,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                             name = "Japan",
                             cases = toInt(casesMatcher.group(1)),
                             deaths = toInt(deaths.ownText()),
-                            recoveries = toInt(recoveries.ownText())
+                            recoveries = recoveries
                     ))
                     regions.add(Region(
                             name = "Diamond Princess",
@@ -129,7 +130,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                             name = nameString,
                             cases = toInt(casesString),
                             deaths = toInt(deaths.ownText()),
-                            recoveries = toInt(recoveries.ownText())
+                            recoveries = recoveries
                     ))
                 }
             }
