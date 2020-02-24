@@ -21,6 +21,17 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.inject.Inject
 
+private val CharSequence.lengthUtf8: Int
+    get() =
+        codePoints().map {
+            when {
+                it < 0x80 -> 1
+                it < 0x800 -> 2
+                it < 0x10000 -> 3
+                else -> 4
+            }
+        }.sum()
+
 class NCov @Inject constructor(private val eventBus: EventBus) {
     private var cache: DataWithTime? = null
 
@@ -30,11 +41,14 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
 
     @Subscribe
     fun command(command: Command) {
-        if (command.line.messageIs("ncov")) {
+        if (command.line.startsWith("ncov") && command.line.parameters.size == 3) {
             if (!command.public) {
                 command.channel.sendMessageSafe("Not here, sorry.")
                 throw CancelEvent
             }
+
+            val wordDead = command.line.parameters[1]
+            val wordRecovered = command.line.parameters[2]
 
             val cached = this.cache
             val now = Instant.now()
@@ -66,14 +80,14 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 var text = "${region.name} ${region.cases}"
 
                 val extra = ArrayList<String>()
-                if (region.deaths != 0) extra.add("${region.deaths} ✝")
-                if (region.recoveries != 0) extra.add("${region.recoveries} 🎉")
+                if (region.deaths != 0) extra.add("${region.deaths} $wordDead")
+                if (region.recoveries != 0) extra.add("${region.recoveries} $wordRecovered")
                 if (extra.isNotEmpty()) text += " (" + extra.joinToString(", ") + ")"
 
                 if (region.name == "Germany" || region.name == "Total") text = BOLD + text + RESET
                 if (i != 0) text = ", $text"
 
-                if (text.length + messageBuilder.length > MAX_MESSAGE_LENGTH - 3) {
+                if (text.lengthUtf8 + messageBuilder.lengthUtf8 > MAX_MESSAGE_LENGTH - 3) {
                     messageBuilder.append("…")
                     break
                 }

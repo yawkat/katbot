@@ -20,6 +20,6 @@ class NCovTest {
             it.name.contains("Diamond Princess") || it.name.contains("International")
         }
         Assert.assertTrue(diamondPrincess.cases >= 61)
-        Assert.assertTrue(diamondPrincess.recoveries == 0)
+        Assert.assertTrue(diamondPrincess.recoveries >= 1)
     }
 }
