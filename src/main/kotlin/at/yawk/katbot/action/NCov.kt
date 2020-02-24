@@ -80,8 +80,8 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 var text = "${region.name} ${region.cases}"
 
                 val extra = ArrayList<String>()
-                if (region.deaths != 0) extra.add("${region.deaths} $wordDead")
-                if (region.recoveries != 0) extra.add("${region.recoveries} $wordRecovered")
+                if (region.deaths != 0) extra.add("${region.deaths}$wordDead")
+                if (region.recoveries != 0) extra.add("${region.recoveries}$wordRecovered")
                 if (extra.isNotEmpty()) text += " (" + extra.joinToString(", ") + ")"
 
                 if (region.name == "Germany" || region.name == "Total") text = BOLD + text + RESET
