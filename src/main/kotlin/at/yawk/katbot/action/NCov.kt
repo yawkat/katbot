@@ -106,9 +106,11 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
     companion object {
         private val parenthesesNumber = Pattern.compile("\\d+ \\((\\d+) \\+ (\\d+)\\)")
 
-        private fun toInt(s: String) =
-                if (s == "" || s == "–") 0
-                else s.replace(",", "").trim().toInt()
+        private fun toInt(s: String): Int {
+            val cleaned = s.replace(",", "").trim()
+            return if (cleaned == "" || cleaned == "–" || cleaned == "-") 0
+            else cleaned.toInt()
+        }
 
         fun load(): List<Region> {
             val doc = Jsoup.parse(URL(
@@ -122,7 +124,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
                 if (ths.size != 1) continue
                 val name = ths.single()
                 val (cases, deaths) = tds
-                val nameString = name.text().trim()
+                val nameString = name.text().trim().replace("\\[[a-z0-9]]".toRegex(), "")
                 val recoveries = if (tds.size >= 3) toInt(tds[2].ownText()) else 0
                 val casesString = cases.text()
                 val casesMatcher = parenthesesNumber.matcher(casesString)
