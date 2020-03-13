@@ -114,15 +114,15 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
 
         fun load(): List<Region> {
             val doc = Jsoup.parse(URL(
-                    "https://en.wikipedia.org/wiki/Template:2019-20_Wuhan_coronavirus_data/World"), 1000)
+                    "https://en.wikipedia.org/wiki/Template:2019%E2%80%9320_coronavirus_pandemic_data"), 1000)
             val regions = ArrayList<Region>()
             for (row in doc.select(".wikitable tbody tr")) {
                 if (row.hasClass("sortbottom")) continue
                 val tds = row.select("td")
                 val ths = row.select("th")
                 if (tds.size < 2) continue
-                if (ths.size != 1) continue
-                val name = ths.single()
+                if (ths.size != 2) continue
+                val name = ths[1]
                 val (cases, deaths) = tds
                 val nameString = name.text().trim().replace("\\[[a-z0-9]]".toRegex(), "")
                 val recoveries = if (tds.size >= 3) toInt(tds[2].ownText()) else 0
