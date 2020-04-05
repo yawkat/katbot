@@ -69,12 +69,14 @@ class ForumListener @Inject constructor(
             for (thread in threads) {
                 val oldReplyCount = sentThreadReplyCounts.put(thread.id, thread.replyCount)
                 if (thread.replyCount != oldReplyCount && !firstPass) {
+                    val newPost = oldReplyCount == null
+                    val threadUri = if (newPost) thread.threadUri else thread.latestUri
                     val message = configuration.messagePattern
                             .with("title", thread.title)
                             .with("author", thread.author)
-                            .with("uri", thread.uri.toString())
-                            .with("uri.short", { urlShortener.get().shorten(thread.uri).toString() })
-                    val targetChannels = if (oldReplyCount == null) {
+                            .with("uri", threadUri.toString())
+                            .with("uri.short", { urlShortener.get().shorten(threadUri).toString() })
+                    val targetChannels = if (newPost) {
                         configuration.channels.filter { it.showNewPosts }
                     } else {
                         configuration.channels.filter { it.showUpdates }
@@ -98,9 +100,11 @@ class ForumListener @Inject constructor(
                 val replyCountText = element.select(".replycount").text().replace("[^\\d]".toRegex(), "")
                 val href = titleTag.attr("href")
                 val idEnd = href.indexOf('-')
+                val lastPostTag = element.select(".lastpost a").single()
                 threads.add(ThreadInfo(
                         id = Integer.parseInt(href.substring(href.indexOf('/') + 1, if (idEnd == -1) href.length else idEnd)),
-                        uri = URI.create(titleTag.absUrl("href")),
+                        threadUri = URI.create(titleTag.absUrl("href")),
+                        latestUri = URI.create(lastPostTag.absUrl("href")),
                         title = titleTag.text(),
                         replyCount = if (replyCountText.isEmpty()) 0 else Integer.parseInt(replyCountText),
                         author = element.select(".topicstart > a").text()
@@ -112,7 +116,8 @@ class ForumListener @Inject constructor(
 
     data class ThreadInfo(
             val id: Int,
-            val uri: URI,
+            val threadUri: URI,
+            val latestUri: URI,
             val title: String,
             val replyCount: Int,
             val author: String
