@@ -16,10 +16,5 @@ class NCovTest {
         Assert.assertTrue(china.cases >= 24348)
         Assert.assertTrue(china.deaths >= 491)
         Assert.assertTrue(china.recoveries == 0 || china.recoveries >= 892)
-        val diamondPrincess = regions.first {
-            it.name.contains("Diamond Princess") || it.name.contains("International")
-        }
-        Assert.assertTrue(diamondPrincess.cases >= 61)
-        Assert.assertTrue(diamondPrincess.recoveries >= 1)
     }
 }

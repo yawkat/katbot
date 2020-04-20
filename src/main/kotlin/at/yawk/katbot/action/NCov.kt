@@ -108,7 +108,7 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
 
         private fun toInt(s: String): Int {
             val cleaned = s.replace(",", "").trim()
-            return if (cleaned == "" || cleaned == "–" || cleaned == "-") 0
+            return if (cleaned == "" || cleaned == "–" || cleaned == "-" || cleaned == "—") 0
             else cleaned.toInt()
         }
 
