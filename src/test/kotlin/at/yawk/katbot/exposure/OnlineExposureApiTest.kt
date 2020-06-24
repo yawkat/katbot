@@ -20,6 +20,6 @@ class OnlineExposureApiTest {
 
     @Test
     fun missingTime() {
-        Assert.assertEquals(OnlineExposureApi.listTimes(LocalDate.EPOCH), emptyList<LocalDateTime>())
+        Assert.assertEquals(OnlineExposureApi.listTimes(LocalDate.of(2000, 0, 0)), emptyList<LocalDateTime>())
     }
 }
