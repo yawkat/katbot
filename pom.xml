@@ -35,6 +35,7 @@
         <shiro.version>1.2.6</shiro.version>
         <highcharts.version>4.2.6</highcharts.version>
         <highcharts-ng.version>0.0.12</highcharts-ng.version>
+        <wire.version>3.0.2</wire.version>
     </properties>
 
     <dependencies>
@@ -62,6 +63,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
@@ -164,6 +170,11 @@
             <artifactId>shiro-guice</artifactId>
             <version>${shiro.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.squareup.wire</groupId>
+            <artifactId>wire-runtime</artifactId>
+            <version>${wire.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -246,6 +257,19 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.squareup.wire</groupId>
+                <artifactId>wire-maven-plugin</artifactId>
+                <version>${wire.version}</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-sources</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

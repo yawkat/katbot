@@ -8,6 +8,7 @@ package at.yawk.katbot
 
 import at.yawk.katbot.action.*
 import at.yawk.katbot.command.CommandManager
+import at.yawk.katbot.exposure.ExposureFactoid
 import at.yawk.katbot.markov.Markov
 import at.yawk.katbot.passive.EventManager
 import at.yawk.katbot.passive.ForumListener
@@ -146,6 +147,7 @@ fun main(args: Array<String>) {
     injector.getInstance<Ignore>().start()
     injector.getInstance<UrbanDictionary>().start()
     injector.getInstance<NCov>().start()
+    injector.getInstance<ExposureFactoid>().start()
     injector.getInstance<Fortune>().start()
     injector.getInstance<Seen>().start()
     injector.getInstance<Cip>().start()
