@@ -1,5 +1,6 @@
 package at.yawk.katbot.exposure
 
+import at.yawk.katbot.CancelEvent
 import at.yawk.katbot.EventBus
 import at.yawk.katbot.Subscribe
 import at.yawk.katbot.command.Command
@@ -45,6 +46,7 @@ class ExposureFactoid @Inject constructor(val eventBus: EventBus) {
             val data = cache.listDates().associateWith { cache.loadKeys(it) }
             command.channel.sendMessageSafe((command.target ?: command.actor).nick + ", " + buildMessage(data,
                     LocalDate.now(ZoneOffset.UTC)))
+            throw CancelEvent
         }
     }
 }
