@@ -1,21 +1,25 @@
-# Factoid Language Syntax
+# katbot
 
-## Invoking factoids
+IRC bot written in Java.
+
+## Factoid Language Syntax
+
+### Invoking factoids
 
 Factoids are invoked with `~factoidName`. You can also provide a target like `~~ yawkat factoidName`.
 
-## Prefixes
+### Prefixes
 
 - When a factoid value starts with `/me`, it is sent as an `ACTION` message.
 - When a factoid value starts with `/send`, it is sent as a normal message, allowing `/me` to be escaped.
 - When a factoid value matches another katbot command, such as `~person++`, it will invoke that command (with privileges of the original sender).
 
-## Special variables
+### Special variables
 
 - `target` is the target of the factoid invocation. This is typically the sender, but can be changed with `~~ name`.
 - `actor` is the nick that invoked the factoid.
 
-## Expressions
+### Expressions
 
 ```
 expression_list ::=
@@ -53,7 +57,7 @@ Expressions return *lists* of strings when evaluated.
 
 After a factoid is evaluated, its return string list is joined with spaces, similar to an `invocation` expression.
 
-## Special functions
+### Special functions
 
 Invocations are pattern-matched on the following functions. These functions are lists with wildcard parameters in them, accepting any string or any list of strings at their place.
 
@@ -70,7 +74,7 @@ A value is *truthy* if it is not `0`, not blank and not `false`.
 - `[lt, *$items]`, `[gt, *$items]`, `[leq, *$items]`, `[geq, *$items]` return `true` if all items are numbers and neighbouring pairs are less than, greater than, less than or equal, greater than or equal to each other, or `items` is empty. Returns `false` if this is not the case.
 - `[random, *$items]` returns a random item from `items`.
 
-## Factoid parameters
+### Factoid parameters
 
 When a factoid is saved with `$` in the factoid name, such as `~cat $ = ...`, these parameters count as wildcards and match any string. These parameters are then passed to the factoid value evaluation and can be accessed through the invocations `${1}`, `${2}` and so on.
 
