@@ -56,7 +56,7 @@ class PasteProvider @Inject constructor(
                 }
                 Paste.Type.TEXT -> {
                     xhg.statusCode = Response.Status.OK.statusCode
-                    xhg.responseHeaders.put(Headers.CONTENT_TYPE, MediaType.TEXT_PLAIN)
+                    xhg.responseHeaders.put(Headers.CONTENT_TYPE, MediaType.TEXT_PLAIN + "; charset=utf-8")
                     xhg.responseSender.send(paste.data)
                 }
             }

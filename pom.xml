@@ -21,7 +21,7 @@
         <guice.version>4.1.0</guice.version>
         <rome.version>1.5.1</rome.version>
         <httpclient.version>4.5.1</httpclient.version>
-        <jsoup.version>1.8.2</jsoup.version>
+        <jsoup.version>1.13.1</jsoup.version>
         <h2.version>1.4.199</h2.version>
         <flyway.version>3.2.1</flyway.version>
         <jtar.version>2.3</jtar.version>

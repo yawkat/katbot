@@ -7,6 +7,7 @@
 package at.yawk.katbot
 
 import at.yawk.katbot.action.KatTemp
+import at.yawk.katbot.nina.WarningChannel
 import at.yawk.katbot.passive.ForumListener
 import at.yawk.katbot.passive.RssFeedListener
 import at.yawk.katbot.web.WebConfig
@@ -22,6 +23,7 @@ data class Config(
         val forums: Map<URI, ForumListener.ForumConfiguration>,
         val interactions: List<String>,
         val eventChannels: Set<String>,
+        val nina: List<WarningChannel> = emptyList(),
         val web: WebConfig,
         val temperature: KatTemp.TemperatureConfig
 ) {

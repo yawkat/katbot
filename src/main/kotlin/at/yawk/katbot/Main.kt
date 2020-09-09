@@ -10,6 +10,7 @@ import at.yawk.katbot.action.*
 import at.yawk.katbot.command.CommandManager
 import at.yawk.katbot.exposure.ExposureFactoid
 import at.yawk.katbot.markov.Markov
+import at.yawk.katbot.nina.NinaListener
 import at.yawk.katbot.passive.EventManager
 import at.yawk.katbot.passive.ForumListener
 import at.yawk.katbot.passive.Ignore
@@ -160,6 +161,7 @@ fun main(args: Array<String>) {
     injector.getInstance<UnicodeInfo>().start()
     injector.getInstance<Invite>().start()
     injector.getInstance<KatTemp>().start()
+    injector.getInstance<NinaListener>().start()
     injector.getInstance<WebSecurityEditor>().start()
     injector.getInstance<PasteProvider>().start()
 
