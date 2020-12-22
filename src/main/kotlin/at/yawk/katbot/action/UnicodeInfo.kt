@@ -53,9 +53,9 @@ class UnicodeInfo @Inject constructor(
             @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
             val codePoints = (char as java.lang.CharSequence).codePoints().toArray()
 
-            if (codePoints.size != 1) usage()
+            if (codePoints.isEmpty()) usage()
 
-            command.channel.sendMessageSafe(op(codePoints[0]))
+            command.channel.sendMessageSafe(codePoints.joinToString(", ", transform = op))
 
             throw CancelEvent
         }
