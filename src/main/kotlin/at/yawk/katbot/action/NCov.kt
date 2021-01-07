@@ -16,10 +16,7 @@ import org.jsoup.Jsoup
 import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.URL
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
 import java.time.Instant
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.inject.Inject
@@ -37,16 +34,9 @@ private val CharSequence.lengthUtf8: Int
 
 class NCov @Inject constructor(private val eventBus: EventBus) {
     private var cache: DataWithTime? = null
-    private val numberFormat = DecimalFormat("###,###", DecimalFormatSymbols(Locale.US).also {
-        it.groupingSeparator = ' '
-    })
 
     fun start() {
         eventBus.subscribe(this)
-    }
-
-    private fun formatNumber(v: Int): String {
-        return numberFormat.format(v)
     }
 
     @Subscribe
@@ -87,11 +77,11 @@ class NCov @Inject constructor(private val eventBus: EventBus) {
             val messageBuilder = StringBuilder((command.target ?: command.actor).nick).append(", nCov cases: ")
 
             for ((i, region) in result.withIndex()) {
-                var text = "${region.name} ${formatNumber(region.cases)}"
+                var text = "${region.name} ${region.cases}"
 
                 val extra = ArrayList<String>()
-                if (region.deaths != 0) extra.add("${formatNumber(region.deaths)}$wordDead")
-                if (region.recoveries != 0) extra.add("${formatNumber(region.recoveries)}$wordRecovered")
+                if (region.deaths != 0) extra.add("${region.deaths}$wordDead")
+                if (region.recoveries != 0) extra.add("${region.recoveries}$wordRecovered")
                 if (extra.isNotEmpty()) text += " (" + extra.joinToString(", ") + ")"
 
                 if (region.name == "Germany" || region.name == "Total") text = BOLD + text + RESET
