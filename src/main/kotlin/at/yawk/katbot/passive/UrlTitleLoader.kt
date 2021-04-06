@@ -13,20 +13,19 @@ import at.yawk.katbot.security.Security
 import at.yawk.katbot.sendMessageSafe
 import org.apache.shiro.util.ThreadContext
 import org.jsoup.Jsoup
+import org.jsoup.helper.HttpConnection
 import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent
 import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadLocalRandom
 import javax.inject.Inject
 
 private val URL_PATTERN = "(https?://)?(([0-9]{1,3}\\.){3}[0-9]{1,3}|\\w+\\.\\w{2,8})(\\S+[^\\s\\.\"'])?".toPattern()
 
 fun isPrintableAsciiChar(it: Char) = it in ' '..'~'
 
-/**
- * @author yawkat
- */
 class UrlTitleLoader @Inject constructor(
         val eventBus: EventBus
 ) {
@@ -53,16 +52,30 @@ class UrlTitleLoader @Inject constructor(
         if (url.protocol != "http" && url.protocol != "https") return
         if (url.host == "s.yawk.at") return
         executor.execute {
-            try {
-                val document = Jsoup.connect(url.toString()).timeout(1000).get()
-                val title = document.title()
-                if (title != null) {
-                    val canonicalTitle = title.filter { isPrintableAsciiChar(it) }
+            val title = getTitle(url)
+            if (title != null) {
+                val canonicalTitle = title.filter { isPrintableAsciiChar(it) }
+                if (canonicalTitle.isNotEmpty()) {
                     val nick = event.actor.nick
                     val safeNick = nick.substring(0, nick.length / 2) + '\u200B' + nick.substring(nick.length / 2)
                     event.channel.sendMessageSafe("$safeNick's title: $canonicalTitle")
                 }
-            } catch(e: IOException) {
+            }
+        }
+    }
+
+    companion object {
+        fun getTitle(url: URL): String? {
+            try {
+                val document = Jsoup.connect(url.toString())
+                        // we set this everywhere, why not
+                        // https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/youtube.py#L265
+                    .cookie("CONSENT", "YES+cb.20210328-17-p0.en+FX+" + ThreadLocalRandom.current().nextInt(100, 999))
+                    .timeout(1000)
+                    .get()
+                return document.title()
+            } catch (e: IOException) {
+                return null
             }
         }
     }
